@@ -1,0 +1,1192 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ventilation Advisor",
+        "description": "Shared settings for all rooms. Rooms can override most of them.",
+        "sections": {
+          "outdoor": {
+            "name": "Outdoor sources",
+            "data": {
+              "outdoor_temperature_entity": "Outdoor temperature",
+              "outdoor_humidity_entity": "Outdoor relative humidity"
+            },
+            "data_description": {
+              "outdoor_temperature_entity": "Required. Temperature sensor or weather entity shared by every room.",
+              "outdoor_humidity_entity": "Optional. Humidity sensor or weather entity shared by every room; needed for humidity scenarios."
+            }
+          },
+          "comfort": {
+            "name": "Comfort window",
+            "data": {
+              "comfort_lower_temperature": "Lower temperature",
+              "comfort_upper_temperature": "Upper temperature",
+              "comfort_lower_humidity": "Lower relative humidity",
+              "comfort_upper_humidity": "Upper relative humidity"
+            },
+            "data_description": {
+              "comfort_lower_temperature": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+              "comfort_upper_temperature": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+              "comfort_lower_humidity": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+              "comfort_upper_humidity": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+            },
+            "description": "Independent temperature and humidity comfort goals. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width. An active heating setpoint adjusts the effective temperature window and humidity reference."
+          },
+          "airing_time": {
+            "name": "Airing time",
+            "data": {
+              "reference_airing_time": "Reference airing time",
+              "maximum_airing_time_factor": "Maximum airing time factor",
+              "airing_interval": "Airing interval"
+            },
+            "data_description": {
+              "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+              "airing_interval": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+            }
+          },
+          "warming_possible": {
+            "name": "Warming possible",
+            "data": {
+              "warming_possible_notification_enabled": "Send notifications",
+              "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "warming_possible_reminder_interval": "Reminder interval",
+              "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "warming_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "warming_possible_reminder_interval": "0 disables reminders for this reason.",
+              "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "warming_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
+          },
+          "cooling_possible": {
+            "name": "Cooling possible",
+            "data": {
+              "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "cooling_possible_reminder_interval": "Reminder interval",
+              "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "cooling_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
+              "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "cooling_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
+          },
+          "drying_possible": {
+            "name": "Drying possible",
+            "data": {
+              "drying_possible_notification_enabled": "Send notifications",
+              "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "drying_possible_reminder_interval": "Reminder interval",
+              "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "drying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "drying_possible_reminder_interval": "0 disables reminders for this reason.",
+              "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "drying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "humidifying_possible": {
+            "name": "Humidifying possible",
+            "data": {
+              "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "humidifying_possible_reminder_interval": "Reminder interval",
+              "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "humidifying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
+              "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "humidifying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "overdue_airing": {
+            "name": "Overdue airing",
+            "data": {
+              "overdue_airing_notification_enabled": "Send notifications",
+              "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
+              "overdue_airing_reminder_interval": "Reminder interval",
+              "overdue_airing_goal_reached_notification_enabled": "Goal-reached notification",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
+              "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "overdue_airing_reminder_interval": "0 disables reminders for this reason.",
+              "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+          },
+          "heat_loss": {
+            "name": "Heat loss",
+            "data": {
+              "heat_loss_notification_enabled": "Send notifications",
+              "heat_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_loss_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_loss_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
+          },
+          "heat_gain": {
+            "name": "Heat gain",
+            "data": {
+              "heat_gain_notification_enabled": "Send notifications",
+              "heat_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_gain_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_gain_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
+          },
+          "moisture_loss": {
+            "name": "Moisture loss",
+            "data": {
+              "moisture_loss_notification_enabled": "Send notifications",
+              "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_loss_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_loss_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
+          },
+          "moisture_gain": {
+            "name": "Moisture gain",
+            "data": {
+              "moisture_gain_notification_enabled": "Send notifications",
+              "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_gain_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_gain_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
+          },
+          "notifications": {
+            "name": "Notifications",
+            "data": {
+              "notifications_enabled": "Send notifications",
+              "persistent_notifications_enabled": "Home Assistant notifications",
+              "notify_actions": "Legacy notify actions",
+              "notify_update_on_reason_change": "Update notify messages when reasons change",
+              "notification_language": "Notification language"
+            },
+            "data_description": {
+              "notifications_enabled": "Turn off to suppress advice notifications.",
+              "persistent_notifications_enabled": "Show advice and problems as persistent notifications.",
+              "notify_actions": "Modern notify entities (notify.send_message) are not supported. Replacing and clearing works only with Companion App devices or groups of them. Use the separate Home Assistant notifications option for persistent advice.",
+              "notify_update_on_reason_change": "Phones may alert again on replacement."
+            }
+          },
+          "quiet_hours": {
+            "name": "Quiet hours",
+            "data": {
+              "quiet_hours_enabled": "Quiet hours",
+              "quiet_hours_start": "Quiet hours start",
+              "quiet_hours_end": "Quiet hours end"
+            },
+            "data_description": {
+              "quiet_hours_enabled": "Defer all advice notifications, including adverse-effect close suggestions. Current advice is evaluated when quiet hours end.",
+              "quiet_hours_end": "Equal start and end means no quiet hours."
+            }
+          },
+          "reminders": {
+            "name": "Reminders",
+            "data": {
+              "reminders_enabled": "Reminders"
+            },
+            "data_description": {
+              "reminders_enabled": "Repeat a notification while the same advice remains relevant."
+            }
+          },
+          "airing_time_advanced": {
+            "name": "Airing time – advanced",
+            "data": {
+              "airing_time_lower_limit": "Shortest recommended airing time",
+              "airing_time_upper_limit": "Longest recommended airing time"
+            },
+            "data_description": {
+              "airing_time_lower_limit": "Positive lower clamp; must not exceed the upper clamp.",
+              "airing_time_upper_limit": "Positive upper clamp; also used when either temperature is missing."
+            },
+            "description": "Recommended time = reference time × √(10 K / temperature difference), clamped to these limits. Maximum time = recommended time × maximum factor. At differences of 25/10/5/2/0 K, defaults give approximately 5.1/8/11.3/17.9/30 minutes recommended and 7.6/12/17/26.8/45 minutes maximum. Both are fixed at confirmed opening."
+          },
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "condition_delay": "Condition delay",
+              "goal_reached_delay": "Goal-reached delay",
+              "minimum_temperature_difference": "Minimum temperature difference",
+              "minimum_humidity_difference": "Minimum humidity difference",
+              "window_open_debounce": "Window open delay",
+              "window_close_debounce": "Window close delay",
+              "problem_report_delay": "Problem report delay"
+            },
+            "data_description": {
+              "condition_delay": "How long conditions must hold before an open suggestion.",
+              "goal_reached_delay": "How long a comfort goal's reached condition must hold.",
+              "minimum_temperature_difference": "Meaningful outdoor-air pull; released below half this difference.",
+              "minimum_humidity_difference": "Meaningful outdoor-air pull at the heating-adjusted reference temperature; released below half this difference.",
+              "window_open_debounce": "How long the room must stay open before the opening is confirmed.",
+              "window_close_debounce": "How long the room must stay closed before the opening ends.",
+              "problem_report_delay": "How long an input must be invalid before a Repairs issue is raised. Dependent scenarios freeze until recovery. 0 reports immediately."
+            }
+          }
+        }
+      },
+      "first_room": {
+        "title": "Rooms",
+        "description": "Add your first room now or later.",
+        "menu_options": {
+          "add_room": "Add a room",
+          "finish": "Finish without rooms"
+        }
+      },
+      "room": {
+        "title": "Room",
+        "data": {
+          "name": "Name",
+          "advisor_enabled": "Advisor enabled",
+          "contacts": "Window and door contacts",
+          "indoor_temperature_entity": "Indoor temperature",
+          "indoor_humidity_entity": "Indoor relative humidity",
+          "thermostat_entity": "Climate (heating-only)"
+        },
+        "data_description": {
+          "name": "Used in notification titles.",
+          "advisor_enabled": "Turn off to pause advice for this room; airing history is still tracked.",
+          "contacts": "Binary sensors where on means open. The room counts as open when any contact is open.",
+          "indoor_temperature_entity": "Required. Temperature sensor used for temperature advice and airing times.",
+          "indoor_humidity_entity": "Optional. Needed for drying, humidifying, moisture-loss and moisture-gain advice.",
+          "thermostat_entity": "Optional, heating-only. An active heating setpoint lifts the lower temperature bound to max(comfort lower, setpoint), and the upper bound to max(comfort upper, effective lower + 1 °C). For a range target, the lower end is used. Indoor and outdoor humidity are judged at max(indoor temperature, setpoint); the humidity window stays unchanged."
+        }
+      },
+      "overrides": {
+        "title": "Room settings",
+        "description": "Each option uses the shared value unless you choose a room value. Airing times are frozen during each opening.",
+        "sections": {
+          "comfort": {
+            "name": "Comfort window",
+            "data": {
+              "comfort_lower_temperature_mode": "Lower temperature",
+              "comfort_lower_temperature": "Lower temperature (room value)",
+              "comfort_upper_temperature_mode": "Upper temperature",
+              "comfort_upper_temperature": "Upper temperature (room value)",
+              "comfort_lower_humidity_mode": "Lower relative humidity",
+              "comfort_lower_humidity": "Lower relative humidity (room value)",
+              "comfort_upper_humidity_mode": "Upper relative humidity",
+              "comfort_upper_humidity": "Upper relative humidity (room value)"
+            },
+            "data_description": {
+              "comfort_lower_temperature_mode": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+              "comfort_upper_temperature_mode": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+              "comfort_lower_humidity_mode": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+              "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+            }
+          },
+          "airing_time": {
+            "name": "Airing time",
+            "data": {
+              "reference_airing_time_mode": "Reference airing time",
+              "reference_airing_time": "Reference airing time (room value)",
+              "maximum_airing_time_factor_mode": "Maximum airing time factor",
+              "maximum_airing_time_factor": "Maximum airing time factor (room value)",
+              "airing_interval_mode": "Airing interval",
+              "airing_interval": "Airing interval (room value)"
+            },
+            "data_description": {
+              "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+              "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+              "airing_interval_mode": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+            }
+          },
+          "warming_possible": {
+            "name": "Warming possible",
+            "data": {
+              "warming_possible_notification_enabled": "Send notifications",
+              "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "warming_possible_reminder_interval_mode": "Reminder interval",
+              "warming_possible_reminder_interval": "Reminder interval (room value)",
+              "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "warming_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+              "warming_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+            },
+            "data_description": {
+              "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
+          },
+          "cooling_possible": {
+            "name": "Cooling possible",
+            "data": {
+              "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "cooling_possible_reminder_interval_mode": "Reminder interval",
+              "cooling_possible_reminder_interval": "Reminder interval (room value)",
+              "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "cooling_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+              "cooling_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+            },
+            "data_description": {
+              "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
+          },
+          "drying_possible": {
+            "name": "Drying possible",
+            "data": {
+              "drying_possible_notification_enabled": "Send notifications",
+              "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "drying_possible_reminder_interval_mode": "Reminder interval",
+              "drying_possible_reminder_interval": "Reminder interval (room value)",
+              "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "drying_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+              "drying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+            },
+            "data_description": {
+              "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "humidifying_possible": {
+            "name": "Humidifying possible",
+            "data": {
+              "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "humidifying_possible_reminder_interval_mode": "Reminder interval",
+              "humidifying_possible_reminder_interval": "Reminder interval (room value)",
+              "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "humidifying_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+              "humidifying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+            },
+            "data_description": {
+              "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "overdue_airing": {
+            "name": "Overdue airing",
+            "data": {
+              "overdue_airing_notification_enabled": "Send notifications",
+              "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
+              "overdue_airing_reminder_interval_mode": "Reminder interval",
+              "overdue_airing_reminder_interval": "Reminder interval (room value)",
+              "overdue_airing_goal_reached_notification_enabled": "Goal-reached notification",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "overdue_airing_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+              "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+            },
+            "data_description": {
+              "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
+              "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "overdue_airing_reminder_interval_mode": "0 disables reminders for this reason.",
+              "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+          },
+          "heat_loss": {
+            "name": "Heat loss",
+            "data": {
+              "heat_loss_notification_enabled": "Send notifications",
+              "heat_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_loss_reminder_interval_mode": "Reminder interval",
+              "heat_loss_reminder_interval": "Reminder interval (room value)"
+            },
+            "data_description": {
+              "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_loss_reminder_interval_mode": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
+          },
+          "heat_gain": {
+            "name": "Heat gain",
+            "data": {
+              "heat_gain_notification_enabled": "Send notifications",
+              "heat_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_gain_reminder_interval_mode": "Reminder interval",
+              "heat_gain_reminder_interval": "Reminder interval (room value)"
+            },
+            "data_description": {
+              "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_gain_reminder_interval_mode": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
+          },
+          "moisture_loss": {
+            "name": "Moisture loss",
+            "data": {
+              "moisture_loss_notification_enabled": "Send notifications",
+              "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_loss_reminder_interval_mode": "Reminder interval",
+              "moisture_loss_reminder_interval": "Reminder interval (room value)"
+            },
+            "data_description": {
+              "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_loss_reminder_interval_mode": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
+          },
+          "moisture_gain": {
+            "name": "Moisture gain",
+            "data": {
+              "moisture_gain_notification_enabled": "Send notifications",
+              "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_gain_reminder_interval_mode": "Reminder interval",
+              "moisture_gain_reminder_interval": "Reminder interval (room value)"
+            },
+            "data_description": {
+              "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_gain_reminder_interval_mode": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
+          },
+          "notifications": {
+            "name": "Notifications",
+            "data": {
+              "notifications_enabled": "Send notifications",
+              "persistent_notifications_enabled": "Home Assistant notifications",
+              "notify_update_on_reason_change": "Update notify messages when reasons change"
+            },
+            "data_description": {
+              "notifications_enabled": "Turn off to suppress advice notifications.",
+              "persistent_notifications_enabled": "Show advice and problems as persistent notifications.",
+              "notify_update_on_reason_change": "Phones may alert again on replacement."
+            }
+          },
+          "quiet_hours": {
+            "name": "Quiet hours",
+            "data": {
+              "quiet_hours_enabled": "Quiet hours",
+              "quiet_hours_times_mode": "Quiet hours times",
+              "quiet_hours_start": "Quiet hours start",
+              "quiet_hours_end": "Quiet hours end"
+            },
+            "data_description": {
+              "quiet_hours_enabled": "Defer all advice notifications, including adverse-effect close suggestions. Current advice is evaluated when quiet hours end.",
+              "quiet_hours_times_mode": "Start and end are overridden together."
+            }
+          },
+          "reminders": {
+            "name": "Reminders",
+            "data": {
+              "reminders_enabled": "Reminders"
+            },
+            "data_description": {
+              "reminders_enabled": "Repeat a notification while the same advice remains relevant."
+            }
+          },
+          "airing_time_advanced": {
+            "name": "Airing time – advanced",
+            "data": {
+              "airing_time_lower_limit_mode": "Shortest recommended airing time",
+              "airing_time_lower_limit": "Shortest recommended airing time (room value)",
+              "airing_time_upper_limit_mode": "Longest recommended airing time",
+              "airing_time_upper_limit": "Longest recommended airing time (room value)"
+            },
+            "data_description": {
+              "airing_time_lower_limit_mode": "Positive lower clamp; must not exceed the upper clamp.",
+              "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing."
+            }
+          }
+        }
+      },
+      "review": {
+        "title": "Review",
+        "description": "{summary}"
+      }
+    },
+    "error": {
+      "invalid_settings": "Some settings are invalid:\n{details}",
+      "invalid_name": "Enter a name with 1–80 characters.",
+      "duplicate_name": "Another room already uses this name.",
+      "contacts_required": "Select at least one window or door contact.",
+      "contact_in_use": "A selected contact is already assigned to another room.",
+      "entity_required": "Select the required entity.",
+      "invalid_entity": "Select an entity of the required type."
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Shared settings",
+        "description": "Shared settings for all rooms. Rooms can override most of them.",
+        "sections": {
+          "outdoor": {
+            "name": "Outdoor sources",
+            "data": {
+              "outdoor_temperature_entity": "Outdoor temperature",
+              "outdoor_humidity_entity": "Outdoor relative humidity"
+            },
+            "data_description": {
+              "outdoor_temperature_entity": "Required. Temperature sensor or weather entity shared by every room.",
+              "outdoor_humidity_entity": "Optional. Humidity sensor or weather entity shared by every room; needed for humidity scenarios."
+            }
+          },
+          "comfort": {
+            "name": "Comfort window",
+            "data": {
+              "comfort_lower_temperature": "Lower temperature",
+              "comfort_upper_temperature": "Upper temperature",
+              "comfort_lower_humidity": "Lower relative humidity",
+              "comfort_upper_humidity": "Upper relative humidity"
+            },
+            "data_description": {
+              "comfort_lower_temperature": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+              "comfort_upper_temperature": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+              "comfort_lower_humidity": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+              "comfort_upper_humidity": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+            },
+            "description": "Independent temperature and humidity comfort goals. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width. An active heating setpoint adjusts the effective temperature window and humidity reference."
+          },
+          "airing_time": {
+            "name": "Airing time",
+            "data": {
+              "reference_airing_time": "Reference airing time",
+              "maximum_airing_time_factor": "Maximum airing time factor",
+              "airing_interval": "Airing interval"
+            },
+            "data_description": {
+              "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+              "airing_interval": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+            }
+          },
+          "warming_possible": {
+            "name": "Warming possible",
+            "data": {
+              "warming_possible_notification_enabled": "Send notifications",
+              "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "warming_possible_reminder_interval": "Reminder interval",
+              "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "warming_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "warming_possible_reminder_interval": "0 disables reminders for this reason.",
+              "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "warming_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
+          },
+          "cooling_possible": {
+            "name": "Cooling possible",
+            "data": {
+              "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "cooling_possible_reminder_interval": "Reminder interval",
+              "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "cooling_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
+              "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "cooling_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
+          },
+          "drying_possible": {
+            "name": "Drying possible",
+            "data": {
+              "drying_possible_notification_enabled": "Send notifications",
+              "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "drying_possible_reminder_interval": "Reminder interval",
+              "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "drying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "drying_possible_reminder_interval": "0 disables reminders for this reason.",
+              "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "drying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "humidifying_possible": {
+            "name": "Humidifying possible",
+            "data": {
+              "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+              "humidifying_possible_reminder_interval": "Reminder interval",
+              "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "humidifying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
+              "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "humidifying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
+          },
+          "overdue_airing": {
+            "name": "Overdue airing",
+            "data": {
+              "overdue_airing_notification_enabled": "Send notifications",
+              "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
+              "overdue_airing_reminder_interval": "Reminder interval",
+              "overdue_airing_goal_reached_notification_enabled": "Goal-reached notification",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+              "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
+            },
+            "data_description": {
+              "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
+              "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "overdue_airing_reminder_interval": "0 disables reminders for this reason.",
+              "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+              "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+              "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
+            },
+            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+          },
+          "heat_loss": {
+            "name": "Heat loss",
+            "data": {
+              "heat_loss_notification_enabled": "Send notifications",
+              "heat_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_loss_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_loss_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
+          },
+          "heat_gain": {
+            "name": "Heat gain",
+            "data": {
+              "heat_gain_notification_enabled": "Send notifications",
+              "heat_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "heat_gain_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "heat_gain_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
+          },
+          "moisture_loss": {
+            "name": "Moisture loss",
+            "data": {
+              "moisture_loss_notification_enabled": "Send notifications",
+              "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_loss_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_loss_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
+          },
+          "moisture_gain": {
+            "name": "Moisture gain",
+            "data": {
+              "moisture_gain_notification_enabled": "Send notifications",
+              "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
+              "moisture_gain_reminder_interval": "Reminder interval"
+            },
+            "data_description": {
+              "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+              "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+              "moisture_gain_reminder_interval": "0 disables reminders for this reason."
+            },
+            "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
+          },
+          "notifications": {
+            "name": "Notifications",
+            "data": {
+              "notifications_enabled": "Send notifications",
+              "persistent_notifications_enabled": "Home Assistant notifications",
+              "notify_actions": "Legacy notify actions",
+              "notify_update_on_reason_change": "Update notify messages when reasons change",
+              "notification_language": "Notification language"
+            },
+            "data_description": {
+              "notifications_enabled": "Turn off to suppress advice notifications.",
+              "persistent_notifications_enabled": "Show advice and problems as persistent notifications.",
+              "notify_actions": "Modern notify entities (notify.send_message) are not supported. Replacing and clearing works only with Companion App devices or groups of them. Use the separate Home Assistant notifications option for persistent advice.",
+              "notify_update_on_reason_change": "Phones may alert again on replacement."
+            }
+          },
+          "quiet_hours": {
+            "name": "Quiet hours",
+            "data": {
+              "quiet_hours_enabled": "Quiet hours",
+              "quiet_hours_start": "Quiet hours start",
+              "quiet_hours_end": "Quiet hours end"
+            },
+            "data_description": {
+              "quiet_hours_enabled": "Defer all advice notifications, including adverse-effect close suggestions. Current advice is evaluated when quiet hours end.",
+              "quiet_hours_end": "Equal start and end means no quiet hours."
+            }
+          },
+          "reminders": {
+            "name": "Reminders",
+            "data": {
+              "reminders_enabled": "Reminders"
+            },
+            "data_description": {
+              "reminders_enabled": "Repeat a notification while the same advice remains relevant."
+            }
+          },
+          "airing_time_advanced": {
+            "name": "Airing time – advanced",
+            "data": {
+              "airing_time_lower_limit": "Shortest recommended airing time",
+              "airing_time_upper_limit": "Longest recommended airing time"
+            },
+            "data_description": {
+              "airing_time_lower_limit": "Positive lower clamp; must not exceed the upper clamp.",
+              "airing_time_upper_limit": "Positive upper clamp; also used when either temperature is missing."
+            },
+            "description": "Recommended time = reference time × √(10 K / temperature difference), clamped to these limits. Maximum time = recommended time × maximum factor. At differences of 25/10/5/2/0 K, defaults give approximately 5.1/8/11.3/17.9/30 minutes recommended and 7.6/12/17/26.8/45 minutes maximum. Both are fixed at confirmed opening."
+          },
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "condition_delay": "Condition delay",
+              "goal_reached_delay": "Goal-reached delay",
+              "minimum_temperature_difference": "Minimum temperature difference",
+              "minimum_humidity_difference": "Minimum humidity difference",
+              "window_open_debounce": "Window open delay",
+              "window_close_debounce": "Window close delay",
+              "problem_report_delay": "Problem report delay"
+            },
+            "data_description": {
+              "condition_delay": "How long conditions must hold before an open suggestion.",
+              "goal_reached_delay": "How long a comfort goal's reached condition must hold.",
+              "minimum_temperature_difference": "Meaningful outdoor-air pull; released below half this difference.",
+              "minimum_humidity_difference": "Meaningful outdoor-air pull at the heating-adjusted reference temperature; released below half this difference.",
+              "window_open_debounce": "How long the room must stay open before the opening is confirmed.",
+              "window_close_debounce": "How long the room must stay closed before the opening ends.",
+              "problem_report_delay": "How long an input must be invalid before a Repairs issue is raised. Dependent scenarios freeze until recovery. 0 reports immediately."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "invalid_settings": "Some settings are invalid:\n{details}",
+      "invalid_name": "Enter a name with 1–80 characters.",
+      "duplicate_name": "Another room already uses this name.",
+      "contacts_required": "Select at least one window or door contact.",
+      "contact_in_use": "A selected contact is already assigned to another room.",
+      "entity_required": "Select the required entity.",
+      "invalid_entity": "Select an entity of the required type."
+    }
+  },
+  "config_subentries": {
+    "room": {
+      "entry_type": "Room",
+      "initiate_flow": {
+        "user": "Add room",
+        "reconfigure": "Edit room"
+      },
+      "step": {
+        "room": {
+          "title": "Room",
+          "data": {
+            "name": "Name",
+            "advisor_enabled": "Advisor enabled",
+            "contacts": "Window and door contacts",
+            "indoor_temperature_entity": "Indoor temperature",
+            "indoor_humidity_entity": "Indoor relative humidity",
+            "thermostat_entity": "Climate (heating-only)"
+          },
+          "data_description": {
+            "name": "Used in notification titles.",
+            "advisor_enabled": "Turn off to pause advice for this room; airing history is still tracked.",
+            "contacts": "Binary sensors where on means open. The room counts as open when any contact is open.",
+            "indoor_temperature_entity": "Required. Temperature sensor used for temperature advice and airing times.",
+            "indoor_humidity_entity": "Optional. Needed for drying, humidifying, moisture-loss and moisture-gain advice.",
+            "thermostat_entity": "Optional, heating-only. An active heating setpoint lifts the lower temperature bound to max(comfort lower, setpoint), and the upper bound to max(comfort upper, effective lower + 1 °C). For a range target, the lower end is used. Indoor and outdoor humidity are judged at max(indoor temperature, setpoint); the humidity window stays unchanged."
+          }
+        },
+        "overrides": {
+          "title": "Room settings",
+          "description": "Each option uses the shared value unless you choose a room value. Airing times are frozen during each opening.",
+          "sections": {
+            "comfort": {
+              "name": "Comfort window",
+              "data": {
+                "comfort_lower_temperature_mode": "Lower temperature",
+                "comfort_lower_temperature": "Lower temperature (room value)",
+                "comfort_upper_temperature_mode": "Upper temperature",
+                "comfort_upper_temperature": "Upper temperature (room value)",
+                "comfort_lower_humidity_mode": "Lower relative humidity",
+                "comfort_lower_humidity": "Lower relative humidity (room value)",
+                "comfort_upper_humidity_mode": "Upper relative humidity",
+                "comfort_upper_humidity": "Upper relative humidity (room value)"
+              },
+              "data_description": {
+                "comfort_lower_temperature_mode": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+                "comfort_upper_temperature_mode": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+                "comfort_lower_humidity_mode": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+                "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+              }
+            },
+            "airing_time": {
+              "name": "Airing time",
+              "data": {
+                "reference_airing_time_mode": "Reference airing time",
+                "reference_airing_time": "Reference airing time (room value)",
+                "maximum_airing_time_factor_mode": "Maximum airing time factor",
+                "maximum_airing_time_factor": "Maximum airing time factor (room value)",
+                "airing_interval_mode": "Airing interval",
+                "airing_interval": "Airing interval (room value)"
+              },
+              "data_description": {
+                "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+                "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+                "airing_interval_mode": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+              }
+            },
+            "warming_possible": {
+              "name": "Warming possible",
+              "data": {
+                "warming_possible_notification_enabled": "Send notifications",
+                "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
+                "warming_possible_reminder_interval_mode": "Reminder interval",
+                "warming_possible_reminder_interval": "Reminder interval (room value)",
+                "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
+                "warming_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+                "warming_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+                "warming_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+              },
+              "data_description": {
+                "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+                "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+                "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              },
+              "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
+            },
+            "cooling_possible": {
+              "name": "Cooling possible",
+              "data": {
+                "cooling_possible_notification_enabled": "Send notifications",
+                "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
+                "cooling_possible_reminder_interval_mode": "Reminder interval",
+                "cooling_possible_reminder_interval": "Reminder interval (room value)",
+                "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
+                "cooling_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+                "cooling_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+                "cooling_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+              },
+              "data_description": {
+                "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+                "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+                "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              },
+              "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
+            },
+            "drying_possible": {
+              "name": "Drying possible",
+              "data": {
+                "drying_possible_notification_enabled": "Send notifications",
+                "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+                "drying_possible_reminder_interval_mode": "Reminder interval",
+                "drying_possible_reminder_interval": "Reminder interval (room value)",
+                "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+                "drying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+                "drying_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+                "drying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+              },
+              "data_description": {
+                "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+                "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+                "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              },
+              "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
+            },
+            "humidifying_possible": {
+              "name": "Humidifying possible",
+              "data": {
+                "humidifying_possible_notification_enabled": "Send notifications",
+                "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
+                "humidifying_possible_reminder_interval_mode": "Reminder interval",
+                "humidifying_possible_reminder_interval": "Reminder interval (room value)",
+                "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
+                "humidifying_possible_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+                "humidifying_possible_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+                "humidifying_possible_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+              },
+              "data_description": {
+                "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+                "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+                "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              },
+              "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
+            },
+            "overdue_airing": {
+              "name": "Overdue airing",
+              "data": {
+                "overdue_airing_notification_enabled": "Send notifications",
+                "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
+                "overdue_airing_reminder_interval_mode": "Reminder interval",
+                "overdue_airing_reminder_interval": "Reminder interval (room value)",
+                "overdue_airing_goal_reached_notification_enabled": "Goal-reached notification",
+                "overdue_airing_goal_reached_notify_during_quiet_hours": "Notify goal reached during quiet hours",
+                "overdue_airing_goal_reached_reminder_interval_mode": "Goal-reached reminder interval",
+                "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
+              },
+              "data_description": {
+                "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
+                "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "overdue_airing_reminder_interval_mode": "0 disables reminders for this reason.",
+                "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
+                "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
+                "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              },
+              "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+            },
+            "heat_loss": {
+              "name": "Heat loss",
+              "data": {
+                "heat_loss_notification_enabled": "Send notifications",
+                "heat_loss_notify_during_quiet_hours": "Notify during quiet hours",
+                "heat_loss_reminder_interval_mode": "Reminder interval",
+                "heat_loss_reminder_interval": "Reminder interval (room value)"
+              },
+              "data_description": {
+                "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+                "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "heat_loss_reminder_interval_mode": "0 disables reminders for this reason."
+              },
+              "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
+            },
+            "heat_gain": {
+              "name": "Heat gain",
+              "data": {
+                "heat_gain_notification_enabled": "Send notifications",
+                "heat_gain_notify_during_quiet_hours": "Notify during quiet hours",
+                "heat_gain_reminder_interval_mode": "Reminder interval",
+                "heat_gain_reminder_interval": "Reminder interval (room value)"
+              },
+              "data_description": {
+                "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+                "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "heat_gain_reminder_interval_mode": "0 disables reminders for this reason."
+              },
+              "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
+            },
+            "moisture_loss": {
+              "name": "Moisture loss",
+              "data": {
+                "moisture_loss_notification_enabled": "Send notifications",
+                "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
+                "moisture_loss_reminder_interval_mode": "Reminder interval",
+                "moisture_loss_reminder_interval": "Reminder interval (room value)"
+              },
+              "data_description": {
+                "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+                "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "moisture_loss_reminder_interval_mode": "0 disables reminders for this reason."
+              },
+              "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
+            },
+            "moisture_gain": {
+              "name": "Moisture gain",
+              "data": {
+                "moisture_gain_notification_enabled": "Send notifications",
+                "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
+                "moisture_gain_reminder_interval_mode": "Reminder interval",
+                "moisture_gain_reminder_interval": "Reminder interval (room value)"
+              },
+              "data_description": {
+                "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
+                "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
+                "moisture_gain_reminder_interval_mode": "0 disables reminders for this reason."
+              },
+              "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
+            },
+            "notifications": {
+              "name": "Notifications",
+              "data": {
+                "notifications_enabled": "Send notifications",
+                "persistent_notifications_enabled": "Home Assistant notifications",
+                "notify_update_on_reason_change": "Update notify messages when reasons change"
+              },
+              "data_description": {
+                "notifications_enabled": "Turn off to suppress advice notifications.",
+                "persistent_notifications_enabled": "Show advice and problems as persistent notifications.",
+                "notify_update_on_reason_change": "Phones may alert again on replacement."
+              }
+            },
+            "quiet_hours": {
+              "name": "Quiet hours",
+              "data": {
+                "quiet_hours_enabled": "Quiet hours",
+                "quiet_hours_times_mode": "Quiet hours times",
+                "quiet_hours_start": "Quiet hours start",
+                "quiet_hours_end": "Quiet hours end"
+              },
+              "data_description": {
+                "quiet_hours_enabled": "Defer all advice notifications, including adverse-effect close suggestions. Current advice is evaluated when quiet hours end.",
+                "quiet_hours_times_mode": "Start and end are overridden together."
+              }
+            },
+            "reminders": {
+              "name": "Reminders",
+              "data": {
+                "reminders_enabled": "Reminders"
+              },
+              "data_description": {
+                "reminders_enabled": "Repeat a notification while the same advice remains relevant."
+              }
+            },
+            "airing_time_advanced": {
+              "name": "Airing time – advanced",
+              "data": {
+                "airing_time_lower_limit_mode": "Shortest recommended airing time",
+                "airing_time_lower_limit": "Shortest recommended airing time (room value)",
+                "airing_time_upper_limit_mode": "Longest recommended airing time",
+                "airing_time_upper_limit": "Longest recommended airing time (room value)"
+              },
+              "data_description": {
+                "airing_time_lower_limit_mode": "Positive lower clamp; must not exceed the upper clamp.",
+                "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing."
+              }
+            }
+          }
+        },
+        "review": {
+          "title": "Review",
+          "description": "{summary}"
+        }
+      },
+      "error": {
+        "invalid_settings": "Some settings are invalid:\n{details}",
+        "invalid_name": "Enter a name with 1–80 characters.",
+        "duplicate_name": "Another room already uses this name.",
+        "contacts_required": "Select at least one window or door contact.",
+        "contact_in_use": "A selected contact is already assigned to another room.",
+        "entity_required": "Select the required entity.",
+        "invalid_entity": "Select an entity of the required type."
+      },
+      "abort": {
+        "reconfigure_successful": "Room updated."
+      }
+    }
+  },
+  "selector": {
+    "override_mode": {
+      "options": {
+        "shared": "Use shared",
+        "custom": "Room value",
+        "on": "On",
+        "off": "Off"
+      }
+    },
+    "language": {
+      "options": {
+        "en": "English",
+        "de": "German"
+      }
+    }
+  },
+  "issues": {
+    "input_invalid": {
+      "title": "{room}: {entity_id} is invalid",
+      "description": "The {role} input {entity_id} of room {room} reports {error}. Scenarios that need it are frozen until it recovers: active reasons and reminders are retained, new reasons do not start, and dependent goals are not reached."
+    }
+  }
+}
