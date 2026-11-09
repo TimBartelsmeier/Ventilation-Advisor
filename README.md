@@ -133,8 +133,9 @@ Safeguards can advise closing while goals remain unfinished, without declaring t
 | Indoor temperature | Yes | room |
 | Indoor humidity | For humidity scenarios | room |
 | Heating climate entity | No | room |
-| Outdoor temperature, sensor or weather entity | Yes | global |
-| Outdoor humidity, sensor or weather entity | For humidity scenarios | global |
+| Weather entity | Required if no outdoor temperature sensor is selected; also supplies humidity when no humidity sensor is selected | global |
+| Outdoor temperature sensor | Optional; takes precedence over the weather entity's temperature | global |
+| Outdoor humidity sensor | Optional; takes precedence over the weather entity's humidity; one of these sources is needed for humidity scenarios | global |
 
 Selectors filter by corresponding entity/device classes.
 

@@ -28,7 +28,11 @@ TARGET = (
     / "en.json"
 )
 
-OUTDOOR_KEYS = ("outdoor_temperature_entity", "outdoor_humidity_entity")
+OUTDOOR_KEYS = (
+    "outdoor_temperature_sensor_entity",
+    "outdoor_humidity_sensor_entity",
+    "outdoor_weather_entity",
+)
 MODE = "_mode"
 
 ERRORS = {

@@ -123,10 +123,30 @@ async def test_setup_without_room(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     entry = result["result"]
-    assert entry.options["outdoor_temperature_entity"] == "sensor.outdoor_temperature"
+    assert (
+        entry.options["outdoor_temperature_sensor_entity"]
+        == "sensor.outdoor_temperature"
+    )
     assert entry.options["quiet_hours_start"] == "22:00:00"
     assert set(entry.options) == {s.key for s in settings.SETTINGS}
     assert not entry.subentries
+
+
+async def test_setup_accepts_weather_entity_without_outdoor_sensors(
+    hass: HomeAssistant,
+) -> None:
+    options = global_options(
+        outdoor_temperature_sensor_entity=None,
+        outdoor_humidity_sensor_entity=None,
+        outdoor_weather_entity="weather.home",
+    )
+    result = await _start(hass, options)
+    assert result["type"] is FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "finish"}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].options["outdoor_weather_entity"] == "weather.home"
 
 
 async def test_setup_with_first_room(hass: HomeAssistant) -> None:
@@ -177,6 +197,12 @@ def test_global_outdoor_temperature_required() -> None:
     errors, placeholders = validate_global(settings.defaults(), [])
     assert errors == {"base": "invalid_settings"}
     assert "Outdoor temperature" in placeholders["details"]
+    options = settings.defaults() | {"outdoor_weather_entity": "weather.home"}
+    assert validate_global(options, []) == ({}, {})
+    options = settings.defaults() | {
+        "outdoor_temperature_sensor_entity": "sensor.outdoor_temperature"
+    }
+    assert validate_global(options, []) == ({}, {})
 
 
 @pytest.mark.parametrize(
@@ -208,7 +234,7 @@ def test_sparse_overrides_ignore_global_only_and_restore_inheritance() -> None:
                 "comfort_upper_temperature": 26,
             },
             "advanced": {"condition_delay_mode": "custom", "condition_delay": 0},
-            "outdoor": {"outdoor_temperature_entity": "sensor.local"},
+            "outdoor": {"outdoor_temperature_sensor_entity": "sensor.local"},
         },
         shared,
         {"comfort_lower_temperature": 22},
@@ -350,17 +376,18 @@ def test_source_selectors_use_device_classes(hass: HomeAssistant) -> None:
     global_fields = {str(k): v for k, v in outdoor_section.schema.schema.items()}
     for kind in ("temperature", "humidity"):
         indoor = f"indoor_{kind}_entity"
-        outdoor = f"outdoor_{kind}_entity"
+        outdoor = f"outdoor_{kind}_sensor_entity"
         assert fields[indoor].config["filter"] == [
             {"domain": ["sensor"], "device_class": [kind]}
         ]
-        expected = [
-            {"domain": ["sensor"], "device_class": [kind]},
-            {"domain": ["weather"]},
-        ]
         assert outdoor not in fields
         assert f"{outdoor}_mode" not in fields
-        assert global_fields[outdoor].config["filter"] == expected
+        assert global_fields[outdoor].config["filter"] == [
+            {"domain": ["sensor"], "device_class": [kind]}
+        ]
+    assert global_fields["outdoor_weather_entity"].config["filter"] == [
+        {"domain": ["weather"]}
+    ]
 
 
 def test_legacy_notify_choices(hass: HomeAssistant) -> None:

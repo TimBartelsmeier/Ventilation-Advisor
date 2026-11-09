@@ -16,8 +16,9 @@ def test_keys_unique_and_defaults_valid() -> None:
 
 def test_global_only_scopes() -> None:
     global_keys = {
-        "outdoor_temperature_entity",
-        "outdoor_humidity_entity",
+        "outdoor_temperature_sensor_entity",
+        "outdoor_humidity_sensor_entity",
+        "outdoor_weather_entity",
         "notify_actions",
         "notification_language",
         "condition_delay",
@@ -51,7 +52,7 @@ def test_merge_sources_and_ignores_global_only_overrides() -> None:
         {
             "comfort_lower_humidity": 50,
             "notify_actions": ["notify.x"],
-            "outdoor_temperature_entity": "sensor.local",
+            "outdoor_temperature_sensor_entity": "sensor.local",
             "condition_delay": 0,
             "unknown": 1,
         },
@@ -61,7 +62,7 @@ def test_merge_sources_and_ignores_global_only_overrides() -> None:
     assert effective["comfort_lower_humidity"] == 50
     assert sources["comfort_lower_humidity"] == "room"
     assert effective["notify_actions"] == []
-    assert effective["outdoor_temperature_entity"] is None
+    assert effective["outdoor_temperature_sensor_entity"] is None
     assert effective["condition_delay"] == 5
     assert "unknown" not in effective
 
@@ -220,13 +221,23 @@ def test_validate_value_kinds() -> None:
         assert st.validate_value(by["notify_actions"], [action]) == "invalid_value"
     assert st.validate_value(by["notification_language"], "xx") == "invalid_value"
     assert st.validate_value(by["notification_language"], "de") is None
-    assert st.validate_value(by["outdoor_temperature_entity"], None) is None
+    assert st.validate_value(by["outdoor_temperature_sensor_entity"], None) is None
     for value in ("light.x", "sensor", "sensor."):
         assert (
-            st.validate_value(by["outdoor_temperature_entity"], value)
+            st.validate_value(by["outdoor_temperature_sensor_entity"], value)
             == "invalid_entity"
         )
-    assert st.validate_value(by["outdoor_temperature_entity"], "sensor.t") is None
+    assert (
+        st.validate_value(by["outdoor_temperature_sensor_entity"], "sensor.t") is None
+    )
+    assert st.validate_value(by["outdoor_weather_entity"], "weather.home") is None
+    assert (
+        st.validate_value(by["outdoor_temperature_sensor_entity"], "weather.home")
+        == "invalid_entity"
+    )
+    assert (
+        st.validate_value(by["outdoor_weather_entity"], "sensor.t") == "invalid_entity"
+    )
 
 
 def test_parse_time() -> None:

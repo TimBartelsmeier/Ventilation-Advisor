@@ -32,6 +32,7 @@ from .const import (
     CONF_NAME,
     CONF_OUTDOOR_HUMIDITY,
     CONF_OUTDOOR_TEMPERATURE,
+    CONF_OUTDOOR_WEATHER,
     CONF_OVERRIDES,
     CONF_ROOM_ID,
     CONF_THERMOSTAT,
@@ -62,7 +63,11 @@ MODE_ON = "on"
 MODE_OFF = "off"
 MODE_SUFFIX = "_mode"
 QUIET_KEYS = ("quiet_hours_start", "quiet_hours_end")
-OUTDOOR_KEYS = (CONF_OUTDOOR_TEMPERATURE, CONF_OUTDOOR_HUMIDITY)
+OUTDOOR_KEYS = (
+    CONF_OUTDOOR_TEMPERATURE,
+    CONF_OUTDOOR_HUMIDITY,
+    CONF_OUTDOOR_WEATHER,
+)
 EXPANDED_GLOBAL_SECTIONS = (
     "outdoor",
     "comfort",
@@ -186,9 +191,7 @@ def global_schema(hass: HomeAssistant, options: Mapping[str, Any]) -> probatio.S
             if setting.section != section_id:
                 continue
             value = current[setting.key]
-            if setting.key == CONF_OUTDOOR_TEMPERATURE:
-                marker = probatio.Required(setting.key, default=value)
-            elif setting.kind is Kind.ENTITY:
+            if setting.kind is Kind.ENTITY:
                 marker = probatio.Optional(
                     setting.key,
                     description={"suggested_value": value} if value else None,
@@ -240,7 +243,7 @@ def validate_global(
     """
     details: list[str] = []
     details.extend(_validation_details(global_settings(options)))
-    if not options.get(CONF_OUTDOOR_TEMPERATURE):
+    if not (options.get(CONF_OUTDOOR_TEMPERATURE) or options.get(CONF_OUTDOOR_WEATHER)):
         details.append(
             "Outdoor temperature: select a temperature sensor or weather entity."
         )
@@ -464,8 +467,9 @@ def _scenario_status(
 ) -> list[str]:
     indoor_t = bool(room.get(CONF_INDOOR_TEMPERATURE))
     indoor_h = bool(room.get(CONF_INDOOR_HUMIDITY))
-    outdoor_t = bool(effective.get(CONF_OUTDOOR_TEMPERATURE))
-    outdoor_h = bool(effective.get(CONF_OUTDOOR_HUMIDITY))
+    weather = bool(effective.get(CONF_OUTDOOR_WEATHER))
+    outdoor_t = bool(effective.get(CONF_OUTDOOR_TEMPERATURE) or weather)
+    outdoor_h = bool(effective.get(CONF_OUTDOOR_HUMIDITY) or weather)
     temperature_missing = [
         n
         for n, ok in (

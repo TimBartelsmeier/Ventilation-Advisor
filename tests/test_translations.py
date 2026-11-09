@@ -65,6 +65,13 @@ def test_comfort_and_independent_goal_wording() -> None:
     for scenario in (*settings.SCENARIOS, *settings.PROTECT_SCENARIOS):
         assert sections[scenario]["description"]
         assert overrides[scenario]["description"] == sections[scenario]["description"]
+    outdoor = data["config"]["step"]["user"]["sections"]["outdoor"]
+    assert set(outdoor["data"]) == {
+        "outdoor_temperature_sensor_entity",
+        "outdoor_humidity_sensor_entity",
+        "outdoor_weather_entity",
+    }
+    assert "fallback" in outdoor["data_description"]["outdoor_weather_entity"]
     overdue_fields = sections["overdue_airing"]
     assert "airing_interval" in overdue_fields["data"]
     assert "overdue_airing_reminder_interval" in overdue_fields["data"]

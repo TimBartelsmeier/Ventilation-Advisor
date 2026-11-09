@@ -8,12 +8,14 @@
           "outdoor": {
             "name": "Outdoor sources",
             "data": {
-              "outdoor_temperature_entity": "Outdoor temperature",
-              "outdoor_humidity_entity": "Outdoor relative humidity"
+              "outdoor_temperature_sensor_entity": "Outdoor temperature sensor",
+              "outdoor_humidity_sensor_entity": "Outdoor humidity sensor",
+              "outdoor_weather_entity": "Weather entity"
             },
             "data_description": {
-              "outdoor_temperature_entity": "Required. Temperature sensor or weather entity shared by every room.",
-              "outdoor_humidity_entity": "Optional. Humidity sensor or weather entity shared by every room; needed for humidity scenarios."
+              "outdoor_temperature_sensor_entity": "Optional. Used instead of the weather entity for outdoor temperature.",
+              "outdoor_humidity_sensor_entity": "Optional. Used instead of the weather entity for outdoor humidity.",
+              "outdoor_weather_entity": "Optional fallback for outdoor temperature and humidity when their sensors are not configured. A weather entity or outdoor temperature sensor is required."
             }
           },
           "comfort": {
@@ -586,12 +588,14 @@
           "outdoor": {
             "name": "Outdoor sources",
             "data": {
-              "outdoor_temperature_entity": "Outdoor temperature",
-              "outdoor_humidity_entity": "Outdoor relative humidity"
+              "outdoor_temperature_sensor_entity": "Outdoor temperature sensor",
+              "outdoor_humidity_sensor_entity": "Outdoor humidity sensor",
+              "outdoor_weather_entity": "Weather entity"
             },
             "data_description": {
-              "outdoor_temperature_entity": "Required. Temperature sensor or weather entity shared by every room.",
-              "outdoor_humidity_entity": "Optional. Humidity sensor or weather entity shared by every room; needed for humidity scenarios."
+              "outdoor_temperature_sensor_entity": "Optional. Used instead of the weather entity for outdoor temperature.",
+              "outdoor_humidity_sensor_entity": "Optional. Used instead of the weather entity for outdoor humidity.",
+              "outdoor_weather_entity": "Optional fallback for outdoor temperature and humidity when their sensors are not configured. A weather entity or outdoor temperature sensor is required."
             }
           },
           "comfort": {

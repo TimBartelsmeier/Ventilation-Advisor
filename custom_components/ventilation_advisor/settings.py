@@ -7,7 +7,11 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from .const import CONF_OUTDOOR_HUMIDITY, CONF_OUTDOOR_TEMPERATURE
+from .const import (
+    CONF_OUTDOOR_HUMIDITY,
+    CONF_OUTDOOR_TEMPERATURE,
+    CONF_OUTDOOR_WEATHER,
+)
 
 SETTINGS_VERSION = 1
 
@@ -229,20 +233,30 @@ SETTINGS: tuple[Setting, ...] = (
         Kind.ENTITY,
         None,
         "outdoor",
-        "Outdoor temperature",
-        "Required. Temperature sensor or weather entity shared by every room.",
+        "Outdoor temperature sensor",
+        "Optional. Used instead of the weather entity for outdoor temperature.",
         scope=Scope.GLOBAL,
-        entity_domains=("sensor", "weather"),
+        entity_domains=("sensor",),
     ),
     Setting(
         CONF_OUTDOOR_HUMIDITY,
         Kind.ENTITY,
         None,
         "outdoor",
-        "Outdoor relative humidity",
-        "Optional. Humidity sensor or weather entity shared by every room; needed for humidity scenarios.",
+        "Outdoor humidity sensor",
+        "Optional. Used instead of the weather entity for outdoor humidity.",
         scope=Scope.GLOBAL,
-        entity_domains=("sensor", "weather"),
+        entity_domains=("sensor",),
+    ),
+    Setting(
+        CONF_OUTDOOR_WEATHER,
+        Kind.ENTITY,
+        None,
+        "outdoor",
+        "Weather entity",
+        "Optional fallback for outdoor temperature and humidity when their sensors are not configured. A weather entity or outdoor temperature sensor is required.",
+        scope=Scope.GLOBAL,
+        entity_domains=("weather",),
     ),
     _number(
         "comfort_lower_temperature",

@@ -76,6 +76,49 @@ async def test_no_entities_or_devices(hass: HomeAssistant, clock: Clock) -> None
     ]
 
 
+async def test_weather_fallback_for_unconfigured_outdoor_sensors(
+    hass: HomeAssistant, clock: Clock
+) -> None:
+    humid_room(hass)
+    set_state(
+        hass,
+        "weather.home",
+        "sunny",
+        {"temperature": 12, "temperature_unit": "°C", "humidity": 65},
+    )
+    options = global_options(
+        outdoor_temperature_sensor_entity=None,
+        outdoor_humidity_sensor_entity=None,
+        outdoor_weather_entity="weather.home",
+    )
+    await setup_entry(hass, options=options)
+    runtime = room_runtime(hass)
+    inputs = runtime._inputs()
+    assert runtime.config.outdoor_temperature == "weather.home"
+    assert runtime.config.outdoor_humidity == "weather.home"
+    assert inputs.outdoor_temperature.value == 12
+    assert inputs.outdoor_humidity.value == 65
+
+
+async def test_configured_outdoor_sensors_override_weather_entity(
+    hass: HomeAssistant, clock: Clock
+) -> None:
+    humid_room(hass)
+    set_state(
+        hass,
+        "weather.home",
+        "sunny",
+        {"temperature": 12, "temperature_unit": "°C", "humidity": 65},
+    )
+    await setup_entry(
+        hass,
+        options=global_options(outdoor_weather_entity="weather.home"),
+    )
+    inputs = room_runtime(hass)._inputs()
+    assert inputs.outdoor_temperature.value == 5
+    assert inputs.outdoor_humidity.value == 80
+
+
 async def test_open_advice_is_delivered_and_cleared(
     hass: HomeAssistant, clock: Clock, notify: NotifyRecorder
 ) -> None:

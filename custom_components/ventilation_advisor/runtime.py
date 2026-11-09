@@ -31,6 +31,9 @@ from .const import (
     CONF_INDOOR_HUMIDITY,
     CONF_INDOOR_TEMPERATURE,
     CONF_NAME,
+    CONF_OUTDOOR_HUMIDITY,
+    CONF_OUTDOOR_TEMPERATURE,
+    CONF_OUTDOOR_WEATHER,
     CONF_OVERRIDES,
     CONF_ROOM_ID,
     CONF_THERMOSTAT,
@@ -93,13 +96,17 @@ class RoomConfig:
 
     @property
     def outdoor_temperature(self) -> str | None:
-        """Effective outdoor temperature entity."""
-        return self.settings.get("outdoor_temperature_entity")
+        """Configured sensor, or weather fallback, for outdoor temperature."""
+        return self.settings.get(CONF_OUTDOOR_TEMPERATURE) or self.settings.get(
+            CONF_OUTDOOR_WEATHER
+        )
 
     @property
     def outdoor_humidity(self) -> str | None:
-        """Effective outdoor humidity entity."""
-        return self.settings.get("outdoor_humidity_entity")
+        """Configured sensor, or weather fallback, for outdoor humidity."""
+        return self.settings.get(CONF_OUTDOOR_HUMIDITY) or self.settings.get(
+            CONF_OUTDOOR_WEATHER
+        )
 
     @property
     def watched(self) -> list[str]:

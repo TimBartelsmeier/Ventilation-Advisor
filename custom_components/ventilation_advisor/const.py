@@ -22,8 +22,9 @@ CONF_THERMOSTAT: Final = "thermostat_entity"
 CONF_OVERRIDES: Final = "overrides"
 
 # Shared (G/R) entity bindings.
-CONF_OUTDOOR_TEMPERATURE: Final = "outdoor_temperature_entity"
-CONF_OUTDOOR_HUMIDITY: Final = "outdoor_humidity_entity"
+CONF_OUTDOOR_TEMPERATURE: Final = "outdoor_temperature_sensor_entity"
+CONF_OUTDOOR_HUMIDITY: Final = "outdoor_humidity_sensor_entity"
+CONF_OUTDOOR_WEATHER: Final = "outdoor_weather_entity"
 
 PERSISTENT_TARGET: Final = "persistent_notification"
 CLEAR_NOTIFICATION: Final = "clear_notification"

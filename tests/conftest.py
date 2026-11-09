@@ -186,8 +186,8 @@ def global_options(**changes: Any) -> dict[str, Any]:
     """Return complete global options with test-friendly defaults."""
     options = settings.global_settings({})
     options.update(
-        outdoor_temperature_entity="sensor.outdoor_temperature",
-        outdoor_humidity_entity="sensor.outdoor_humidity",
+        outdoor_temperature_sensor_entity="sensor.outdoor_temperature",
+        outdoor_humidity_sensor_entity="sensor.outdoor_humidity",
         quiet_hours_enabled=False,
     )
     options.update(changes)
