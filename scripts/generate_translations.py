@@ -36,6 +36,7 @@ OUTDOOR_KEYS = (
 MODE = "_mode"
 
 ERRORS = {
+    "invalid_area": "Select an existing Home Assistant area, or leave it empty.",
     "invalid_settings": "Some settings are invalid:\n{details}",
     "invalid_name": "Enter a name with 1–80 characters.",
     "duplicate_name": "Another room already uses this name.",
@@ -46,7 +47,10 @@ ERRORS = {
 }
 
 ROOM_FIELDS = {
-    "name": ("Name", "Used in notification titles."),
+    "name": (
+        "Name override",
+        "Optional when an area is selected: leave empty to use its name when saving. Required without an area. Used in notification titles.",
+    ),
     "advisor_enabled": (
         "Advisor enabled",
         "Turn off to pause advice for this room; airing history is still tracked.",
@@ -174,6 +178,18 @@ def _overrides_step() -> dict[str, Any]:
 
 def _room_steps() -> dict[str, Any]:
     return {
+        "area": {
+            "title": "Room area",
+            "description": "Choose an optional Home Assistant area before selecting the room's entities. Existing selections are kept even when outside the area.",
+            "data": {
+                "area_id": "Area",
+                "filter_by_area": "Only show entities in this area",
+            },
+            "data_description": {
+                "area_id": "Optional. Use the area's name unless you enter a name override on the next step.",
+                "filter_by_area": "Turn off to select entities from other areas. Has no effect without an area. Applies only to this room's contacts, sensors and climate entity.",
+            },
+        },
         "room": {
             "title": "Room",
             "data": {k: v[0] for k, v in ROOM_FIELDS.items()},

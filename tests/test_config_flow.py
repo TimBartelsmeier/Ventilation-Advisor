@@ -8,6 +8,9 @@ import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from custom_components.ventilation_advisor import settings
 from custom_components.ventilation_advisor.config_flow import (
@@ -155,6 +158,10 @@ async def test_setup_with_first_room(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"next_step_id": "add_room"}
     )
+    assert result["step_id"] == "area"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"filter_by_area": True}
+    )
     assert result["step_id"] == "room"
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], ROOM_INPUT
@@ -178,6 +185,130 @@ async def test_setup_with_first_room(hass: HomeAssistant) -> None:
     assert subentry.data["contacts"] == ["binary_sensor.bedroom_window"]
     assert subentry.data["overrides"] == {}
     await hass.async_block_till_done()
+
+
+@pytest.mark.parametrize("override", [None, "My bedroom"])
+async def test_area_room_name_and_reconfigure(hass: HomeAssistant, override) -> None:
+    states(hass)
+    area = ar.async_get(hass).async_create("Bedroom")
+    entry = await setup_entry(hass, rooms=[])
+    result = await hass.config_entries.subentries.async_init(
+        (entry.entry_id, "room"), context={"source": "user"}
+    )
+    assert result["step_id"] == "area"
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"area_id": area.id, "filter_by_area": False}
+    )
+    assert result["step_id"] == "room"
+    data = {key: value for key, value in ROOM_INPUT.items() if key != "name"}
+    if override is not None:
+        data["name"] = override
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], data
+    )
+    assert result["step_id"] == "overrides"
+    result = await configure_subentry(hass, result, {})
+    assert (override or area.name) in result["description_placeholders"]["summary"]
+    result = await hass.config_entries.subentries.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    subentry = next(iter(entry.subentries.values()))
+    assert subentry.title == (override or area.name)
+    assert subentry.data["area_id"] == area.id
+    assert subentry.data["name_override"] == override
+    assert subentry.data["filter_by_area"] is False
+    result = await hass.config_entries.subentries.async_init(
+        (entry.entry_id, "room"),
+        context={"source": "reconfigure", "subentry_id": subentry.subentry_id},
+    )
+    markers = {str(key): key for key in result["data_schema"].schema}
+    assert markers["area_id"].description["suggested_value"] == area.id
+    assert markers["filter_by_area"].default() is False
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"area_id": area.id, "filter_by_area": True}
+    )
+    fields = {str(key): key for key in result["data_schema"].schema}
+    assert fields["name"].default() == (override or "")
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], data
+    )
+    assert result["step_id"] == "overrides"
+    result = await configure_subentry(hass, result, {})
+    result = await hass.config_entries.subentries.async_configure(result["flow_id"], {})
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.subentries[subentry.subentry_id].data["filter_by_area"] is True
+
+
+async def test_room_area_validation_and_missing_manual_name(
+    hass: HomeAssistant,
+) -> None:
+    states(hass)
+    entry = await setup_entry(hass, rooms=[])
+    result = await hass.config_entries.subentries.async_init(
+        (entry.entry_id, "room"), context={"source": "user"}
+    )
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"area_id": "deleted_area", "filter_by_area": True}
+    )
+    assert result["errors"] == {"area_id": "invalid_area"}
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"filter_by_area": True}
+    )
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"],
+        {key: value for key, value in ROOM_INPUT.items() if key != "name"},
+    )
+    assert result["errors"] == {"name": "invalid_name"}
+
+
+async def test_area_filters_use_entity_and_device_areas(hass: HomeAssistant) -> None:
+    area = ar.async_get(hass).async_create("Bedroom")
+    other = ar.async_get(hass).async_create("Office")
+    entry = await setup_entry(hass, rooms=[])
+    device = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={("test", "device")},
+    )
+    dr.async_get(hass).async_update_device(device.id, area_id=area.id)
+    registry = er.async_get(hass)
+    direct = registry.async_get_or_create("sensor", "test", "direct")
+    registry.async_update_entity(direct.entity_id, area_id=area.id)
+    inherited = registry.async_get_or_create(
+        "sensor", "test", "inherited", device_id=device.id
+    )
+    different = registry.async_get_or_create(
+        "sensor", "test", "different", device_id=device.id, original_name="Different"
+    )
+    registry.async_update_entity(different.entity_id, area_id=other.id)
+    set_state(hass, "sensor.unassigned", "20")
+    data = {"area_id": area.id, "filter_by_area": True}
+    fields = {
+        str(key): value for key, value in _room_schema(data, {}, hass).schema.items()
+    }
+    for key in (
+        "contacts",
+        "indoor_temperature_entity",
+        "indoor_humidity_entity",
+        "thermostat_entity",
+    ):
+        excluded = fields[key].config["exclude_entities"]
+        assert direct.entity_id not in excluded
+        assert inherited.entity_id not in excluded
+        assert different.entity_id in excluded
+        assert "sensor.unassigned" in excluded
+    data["indoor_temperature_entity"] = different.entity_id
+    fields = {
+        str(key): value for key, value in _room_schema(data, {}, hass).schema.items()
+    }
+    assert (
+        different.entity_id
+        not in fields["indoor_temperature_entity"].config["exclude_entities"]
+    )
+    for unfiltered in (data | {"filter_by_area": False}, data | {"area_id": None}):
+        fields = {
+            str(key): value
+            for key, value in _room_schema(unfiltered, {}, hass).schema.items()
+        }
+        assert "exclude_entities" not in fields["indoor_temperature_entity"].config
 
 
 async def test_setup_rejects_inconsistent_thresholds(hass: HomeAssistant) -> None:
@@ -564,8 +695,12 @@ def test_review_profile_and_inheritance(hass: HomeAssistant) -> None:
 
 
 async def _room_flow(hass: HomeAssistant, entry, source: str = "user", **kw):
-    return await hass.config_entries.subentries.async_init(
+    result = await hass.config_entries.subentries.async_init(
         (entry.entry_id, "room"), context={"source": source, **kw}
+    )
+    assert result["step_id"] == "area"
+    return await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"filter_by_area": True}
     )
 
 

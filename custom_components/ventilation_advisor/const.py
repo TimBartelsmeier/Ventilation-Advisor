@@ -14,6 +14,9 @@ STORAGE_VERSION: Final = 2
 # Room subentry data keys (per-room only).
 CONF_ROOM_ID: Final = "room_id"
 CONF_NAME: Final = "name"
+CONF_AREA_ID: Final = "area_id"
+CONF_NAME_OVERRIDE: Final = "name_override"
+CONF_FILTER_BY_AREA: Final = "filter_by_area"
 CONF_ADVISOR_ENABLED: Final = "advisor_enabled"
 CONF_CONTACTS: Final = "contacts"
 CONF_INDOOR_TEMPERATURE: Final = "indoor_temperature_entity"

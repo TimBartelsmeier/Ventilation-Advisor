@@ -33,6 +33,8 @@ After either installation:
 
 Global settings can be edited with **Configure**. Rooms use **Add room** and **Reconfigure**, with the same options available during setup and editing.
 
+For each room, optionally select a Home Assistant area first. Leave the name override empty to use the area's name when saving, or enter your own name (required without an area). Entity selectors initially show only entities assigned to that area, directly or through their device. Turn off **Only show entities in this area** on the area step to choose contacts, sensors or a climate entity from elsewhere. Existing selections are retained even if outside the chosen area. Global outdoor sources are not filtered.
+
 ## Core concepts
 
 ### Openings and comfort

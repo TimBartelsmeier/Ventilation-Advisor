@@ -1,7 +1,7 @@
 """Config, options, and room subentry flows.
 
 The global form is shared by initial setup and the options flow; the room
-wizard (room -> overrides -> review) is shared by setup, adding, and editing a
+wizard (area -> room -> overrides -> review) is shared by setup, adding, and editing a
 room. All fields derive from ``settings.SETTINGS``.
 """
 
@@ -22,14 +22,20 @@ from homeassistant.config_entries import (
     SubentryFlowResult,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector as sel
 
 from .const import (
     CONF_ADVISOR_ENABLED,
+    CONF_AREA_ID,
     CONF_CONTACTS,
+    CONF_FILTER_BY_AREA,
     CONF_INDOOR_HUMIDITY,
     CONF_INDOOR_TEMPERATURE,
     CONF_NAME,
+    CONF_NAME_OVERRIDE,
     CONF_OUTDOOR_HUMIDITY,
     CONF_OUTDOOR_TEMPERATURE,
     CONF_OUTDOOR_WEATHER,
@@ -304,29 +310,58 @@ def _error_text(error: str) -> str:
 # Room wizard
 
 
-def _room_schema(data: Mapping[str, Any], shared: Mapping[str, Any]) -> probatio.Schema:
+def _room_schema(
+    data: Mapping[str, Any],
+    shared: Mapping[str, Any],
+    hass: HomeAssistant | None = None,
+) -> probatio.Schema:
+    area_id = data.get(CONF_AREA_ID)
+
+    def room_selector(
+        key: str, domains: tuple[str, ...], *, multiple: bool = False
+    ) -> sel.EntitySelector:
+        selector = _entity_selector(key, domains, multiple=multiple)
+        if hass is None or not area_id or not data.get(CONF_FILTER_BY_AREA, True):
+            return selector
+        entities = er.async_get(hass)
+        devices = dr.async_get(hass)
+        selected = data.get(key) or []
+        selected = selected if isinstance(selected, list) else [selected]
+        allowed = set(selected)
+        for entity in entities.entities.values():
+            device = devices.async_get(entity.device_id) if entity.device_id else None
+            if (entity.area_id or (device.area_id if device else None)) == area_id:
+                allowed.add(entity.entity_id)
+        known = set(hass.states.async_entity_ids()) | set(entities.entities)
+        config = selector.config.copy()
+        config["exclude_entities"] = sorted(known - allowed)
+        return sel.EntitySelector(config)
+
     fields: dict[Any, Any] = {
-        probatio.Required(
-            CONF_NAME, default=data.get(CONF_NAME, "")
+        probatio.Optional(
+            CONF_NAME,
+            default=(data.get(CONF_NAME_OVERRIDE) or "")
+            if area_id
+            else data.get(CONF_NAME, ""),
         ): sel.TextSelector(),
         probatio.Required(
             CONF_ADVISOR_ENABLED, default=data.get(CONF_ADVISOR_ENABLED, True)
         ): sel.BooleanSelector(),
         probatio.Required(
             CONF_CONTACTS, default=list(data.get(CONF_CONTACTS) or [])
-        ): _entity_selector(CONF_CONTACTS, ("binary_sensor",), multiple=True),
+        ): room_selector(CONF_CONTACTS, ("binary_sensor",), multiple=True),
         probatio.Required(
             CONF_INDOOR_TEMPERATURE,
             default=data.get(CONF_INDOOR_TEMPERATURE),
-        ): _entity_selector(CONF_INDOOR_TEMPERATURE, ("sensor",)),
+        ): room_selector(CONF_INDOOR_TEMPERATURE, ("sensor",)),
         probatio.Optional(
             CONF_INDOOR_HUMIDITY,
             description={"suggested_value": data.get(CONF_INDOOR_HUMIDITY)},
-        ): _entity_selector(CONF_INDOOR_HUMIDITY, ("sensor",)),
+        ): room_selector(CONF_INDOOR_HUMIDITY, ("sensor",)),
         probatio.Optional(
             CONF_THERMOSTAT,
             description={"suggested_value": data.get(CONF_THERMOSTAT)},
-        ): _entity_selector(CONF_THERMOSTAT, ("climate",)),
+        ): room_selector(CONF_THERMOSTAT, ("climate",)),
     }
     return probatio.Schema(fields)
 
@@ -520,6 +555,13 @@ def review_summary(
     if not room.get(CONF_ADVISOR_ENABLED, True):
         lines += ["Advisor is **paused** for this room.", ""]
     lines.append("**Sources**")
+    area_id = room.get(CONF_AREA_ID)
+    if area_id:
+        area = ar.async_get(hass).async_get_area(area_id)
+        lines.append(f"- Area: {area.name if area else area_id}")
+        lines.append(
+            "- Area filter: " + ("on" if room.get(CONF_FILTER_BY_AREA, True) else "off")
+        )
     lines.append(f"- Contacts: {', '.join(room[CONF_CONTACTS])}")
     for key, label in (
         (CONF_INDOOR_TEMPERATURE, "Indoor temperature"),
@@ -615,7 +657,7 @@ def review_summary(
 
 
 class RoomWizard:
-    """Mixin implementing the room wizard steps (room -> overrides -> review)."""
+    """Mixin implementing area, room, overrides and review steps."""
 
     hass: HomeAssistant
     _room: dict[str, Any]
@@ -668,12 +710,46 @@ class RoomWizard:
                     errors[key] = "invalid_entity"
         return errors
 
+    async def async_step_area(self, user_input: dict[str, Any] | None = None) -> Any:
+        """Select an optional area and whether to filter room entities."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            area_id = user_input.get(CONF_AREA_ID) or None
+            if area_id and ar.async_get(self.hass).async_get_area(area_id) is None:
+                errors[CONF_AREA_ID] = "invalid_area"
+            else:
+                self._room[CONF_AREA_ID] = area_id
+                self._room[CONF_FILTER_BY_AREA] = user_input[CONF_FILTER_BY_AREA]
+                return await self.async_step_room()
+        data = user_input if user_input is not None else self._room
+        return self.async_show_form(
+            step_id="area",
+            data_schema=probatio.Schema(
+                {
+                    probatio.Optional(
+                        CONF_AREA_ID,
+                        description={"suggested_value": data[CONF_AREA_ID]}
+                        if data.get(CONF_AREA_ID)
+                        else None,
+                    ): sel.AreaSelector(),
+                    probatio.Required(
+                        CONF_FILTER_BY_AREA, default=data.get(CONF_FILTER_BY_AREA, True)
+                    ): sel.BooleanSelector(),
+                }
+            ),
+            errors=errors,
+        )
+
     async def async_step_room(self, user_input: dict[str, Any] | None = None) -> Any:
         """Identity, contacts, and sensors."""
         errors: dict[str, str] = {}
         shared = global_settings(self._wizard_options())
         if user_input is not None:
-            errors = self._validate_room(user_input)
+            area_id = self._room.get(CONF_AREA_ID)
+            area = ar.async_get(self.hass).async_get_area(area_id) if area_id else None
+            override = (user_input.get(CONF_NAME) or "").strip()
+            name = override or (area.name if area else "")
+            errors = self._validate_room(user_input | {CONF_NAME: name})
             if not errors:
                 for key in (
                     CONF_INDOOR_TEMPERATURE,
@@ -681,18 +757,19 @@ class RoomWizard:
                     CONF_THERMOSTAT,
                 ):
                     self._room[key] = user_input.get(key) or None
-                self._room[CONF_NAME] = user_input[CONF_NAME].strip()
+                self._room[CONF_NAME] = name
+                self._room[CONF_NAME_OVERRIDE] = override or None
                 self._room[CONF_ADVISOR_ENABLED] = user_input[CONF_ADVISOR_ENABLED]
                 self._room[CONF_CONTACTS] = list(
                     dict.fromkeys(user_input[CONF_CONTACTS])
                 )
                 return await self.async_step_overrides()
-            data = {**self._room, **user_input}
+            data = {**self._room, **user_input, CONF_NAME_OVERRIDE: override}
         else:
             data = self._room
         return self.async_show_form(  # type: ignore[attr-defined]
             step_id="room",
-            data_schema=_room_schema(data, shared),
+            data_schema=_room_schema(data, shared, self.hass),
             errors=errors,
         )
 
@@ -819,7 +896,7 @@ class VentilationAdvisorConfigFlow(RoomWizard, ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Start the room wizard."""
         self._start_wizard(None)
-        return await self.async_step_room()
+        return await self.async_step_area()
 
     async def async_step_finish(
         self, user_input: dict[str, Any] | None = None
@@ -894,14 +971,14 @@ class RoomSubentryFlow(RoomWizard, ConfigSubentryFlow):
     ) -> SubentryFlowResult:
         """Add a room."""
         self._start_wizard(None)
-        return await self.async_step_room()
+        return await self.async_step_area()
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
         """Edit a room."""
         self._start_wizard(self._get_reconfigure_subentry().data)
-        return await self.async_step_room()
+        return await self.async_step_area()
 
     async def _async_finish_room(self, room: dict[str, Any]) -> SubentryFlowResult:
         if self.source == "reconfigure":
