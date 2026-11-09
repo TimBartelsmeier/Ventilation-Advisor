@@ -99,8 +99,9 @@ SCENARIO_DESCRIPTIONS = {
         "the indoor temperature or heating setpoint."
     ),
     "overdue_airing": (
-        "Suggest opening when the room has not had a recommended full-air-exchange "
-        "airing within the interval."
+        "Suggest opening when no qualifying airing has occurred within the airing "
+        "interval. This sets how often airing is due; the reminder interval controls "
+        "repeat notifications while it remains overdue."
     ),
     "heat_loss": (
         "After the maximum airing time, suggest closing if further airing risks "
@@ -172,16 +173,19 @@ def _scenario_settings(prefix: str) -> tuple[Setting, ...]:
         ),
         _number(
             f"{prefix}_reminder_interval",
-            480.0
-            if prefix == "overdue_airing"
-            else (120.0 if prefix in SCENARIOS else 15.0),
+            120.0 if prefix in SCENARIOS else 15.0,
             prefix,
             "Reminder interval",
             0,
             1440,
             5,
             "min",
-            "0 disables reminders for this reason.",
+            (
+                "Delay between repeat notifications while airing is overdue; "
+                "independent of how often airing is due. 0 disables reminders."
+                if prefix == "overdue_airing"
+                else "0 disables reminders for this reason."
+            ),
         ),
     ]
     if prefix in SCENARIOS:
@@ -308,13 +312,13 @@ SETTINGS: tuple[Setting, ...] = (
     _number(
         "airing_interval",
         8,
-        "airing_time",
+        "overdue_airing",
         "Airing interval",
         0.1,
         72,
         0.1,
         "h",
-        "Suggest airing after this many hours without an opening lasting at least the recommended airing time.",
+        "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
     ),
     *tuple(
         s

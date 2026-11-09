@@ -84,7 +84,7 @@ Increase the reference time for large rooms, small windows or tilted openings; d
 
 ### Suggest opening
 
-Opening suggestions apply while all room windows are closed. Each comfort scenario is evaluated independently, so drying can be suggested even if it temporarily cools a room that is already cold. The overdue-airing reminder is independent of comfort; temperature and humidity are not measures of fresh-air exchange. A scenario must remain true for the configured condition delay before its advice starts.
+Opening suggestions apply while all room windows are closed. Each comfort scenario is evaluated independently, so drying can be suggested even if it temporarily cools a room that is already cold. Overdue-airing advice is independent of comfort and simply reminds you to air the room if it hasn't been for some time. A scenario must remain true for the configured condition delay before its advice starts.
 
 | Scenario | When opening helps |
 |---|---|
@@ -92,7 +92,7 @@ Opening suggestions apply while all room windows are closed. Each comfort scenar
 | Warming possible | Temperature is below comfort and outdoor air is meaningfully warmer. |
 | Drying possible | Reference RH is above comfort and outdoor air can reduce water content. |
 | Humidifying possible | Reference RH is below comfort and outdoor air can increase water content. |
-| Overdue airing | No qualifying airing has occurred within the configured airing interval. |
+| Overdue airing | No qualifying airing has occurred within the airing interval; repeat notifications use the separate reminder interval. |
 
 ### Optional “goal reached” advice
 
@@ -147,22 +147,23 @@ Selectors filter by corresponding entity/device classes.
 | `reference_airing_time` | 10 min | global + room |
 | `maximum_airing_time_factor` | 1.5 | global + room |
 | `airing_time_lower_limit` / `airing_time_upper_limit` | 5 / 45 min | global + room |
-| `airing_interval` | 8 h | global + room |
 
 ### Per-scenario notifications
 
-Every scenario has `<scenario>_notification_enabled` and `<scenario>_reminder_interval`. Opening scenarios additionally have `<scenario>_goal_reached_notification_enabled` and `<scenario>_goal_reached_reminder_interval`. Goal-reached advice requires that scenario's main notification switch. All are global with room overrides.
+Every scenario has `<scenario>_notification_enabled` and `<scenario>_reminder_interval`. The overdue-airing scenario also has `airing_interval`, which determines how long since a qualifying airing before the first suggestion is due. Its separate `overdue_airing_reminder_interval` controls how often to repeat the suggestion while airing remains overdue. Opening scenarios additionally have `<scenario>_goal_reached_notification_enabled` and `<scenario>_goal_reached_reminder_interval`. Goal-reached advice requires that scenario's main notification switch. These settings are global with room overrides.
 
 Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening scenarios have a separate `<scenario>_goal_reached_notify_during_quiet_hours` for completion advice. These switches apply to initial notifications and reminders. All default to **off**, except **Heat loss suggestions**, which default to **on**.
 
 | Scenario key | Enabled | Goal reached | Reminder | Goal-reached reminder |
 |---|---|---|---|---|
 | `cooling_possible`, `warming_possible`, `drying_possible`, `humidifying_possible` | on | on | 120 min | 15 min |
-| `overdue_airing` | on | on | 480 min | 15 min |
+| `overdue_airing` | on | on | 120 min | 15 min |
 | `heat_loss`, `heat_gain`, `moisture_gain` | on | — | 15 min | — |
 | `moisture_loss` | off | — | 15 min | — |
 
 Zero disables that reminder. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
+
+The overdue-airing defaults are an **8-hour airing interval** and a **120-minute reminder interval**. The first determines when the room becomes due for airing; the second controls repeat notifications after overdue advice has started.
 
 ### General and advanced
 

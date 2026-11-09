@@ -286,7 +286,14 @@ def test_reminder_intervals_per_recommendation() -> None:
     only_overdue = _ev(
         Recommendation.OPEN, [ReasonInfo(Reason.OVERDUE_AIRING, "active")]
     )
-    assert reminder_interval_s(only_overdue, s) == 480 * 60
+    assert reminder_interval_s(only_overdue, s) == 120 * 60
+    assert (
+        reminder_interval_s(
+            only_overdue,
+            s | {"airing_interval": 24, "overdue_airing_reminder_interval": 30},
+        )
+        == 30 * 60
+    )
     close_ev = _ev(
         Recommendation.CLOSE,
         [

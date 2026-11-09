@@ -72,9 +72,7 @@ def test_scenario_defaults() -> None:
     for prefix in st.SCENARIOS:
         assert defaults[f"{prefix}_notification_enabled"]
         assert defaults[f"{prefix}_goal_reached_notification_enabled"]
-        assert defaults[f"{prefix}_reminder_interval"] == (
-            480 if prefix == "overdue_airing" else 120
-        )
+        assert defaults[f"{prefix}_reminder_interval"] == 120
         assert defaults[f"{prefix}_goal_reached_reminder_interval"] == 15
         assert not defaults[f"{prefix}_notify_during_quiet_hours"]
         assert not defaults[f"{prefix}_goal_reached_notify_during_quiet_hours"]
@@ -107,6 +105,9 @@ def test_scenario_defaults() -> None:
     assert st.SETTINGS_BY_KEY["airing_interval"].unit == "h"
     assert st.SETTINGS_BY_KEY["airing_interval"].step == 0.1
     assert st.validate_value(st.SETTINGS_BY_KEY["airing_interval"], 24) is None
+    assert st.SETTINGS_BY_KEY["airing_interval"].section == "overdue_airing"
+    assert st.defaults()["overdue_airing_reminder_interval"] == 120
+    assert st.defaults()["airing_interval"] == 8
 
 
 @pytest.mark.parametrize("prefix", (*st.SCENARIOS, *st.PROTECT_SCENARIOS))

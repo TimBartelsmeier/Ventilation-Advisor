@@ -36,13 +36,11 @@
             "name": "Airing time",
             "data": {
               "reference_airing_time": "Reference airing time",
-              "maximum_airing_time_factor": "Maximum airing time factor",
-              "airing_interval": "Airing interval"
+              "maximum_airing_time_factor": "Maximum airing time factor"
             },
             "data_description": {
               "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
-              "airing_interval": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
             }
           },
           "warming_possible": {
@@ -128,6 +126,7 @@
           "overdue_airing": {
             "name": "Overdue airing",
             "data": {
+              "airing_interval": "Airing interval",
               "overdue_airing_notification_enabled": "Send notifications",
               "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
               "overdue_airing_reminder_interval": "Reminder interval",
@@ -136,14 +135,15 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
             },
             "data_description": {
+              "airing_interval": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "overdue_airing_reminder_interval": "0 disables reminders for this reason.",
+              "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
               "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
               "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
-            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+            "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
           },
           "heat_loss": {
             "name": "Heat loss",
@@ -329,14 +329,11 @@
               "reference_airing_time_mode": "Reference airing time",
               "reference_airing_time": "Reference airing time (room value)",
               "maximum_airing_time_factor_mode": "Maximum airing time factor",
-              "maximum_airing_time_factor": "Maximum airing time factor (room value)",
-              "airing_interval_mode": "Airing interval",
-              "airing_interval": "Airing interval (room value)"
+              "maximum_airing_time_factor": "Maximum airing time factor (room value)"
             },
             "data_description": {
               "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-              "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
-              "airing_interval_mode": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+              "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
             }
           },
           "warming_possible": {
@@ -430,6 +427,8 @@
           "overdue_airing": {
             "name": "Overdue airing",
             "data": {
+              "airing_interval_mode": "Airing interval",
+              "airing_interval": "Airing interval (room value)",
               "overdue_airing_notification_enabled": "Send notifications",
               "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
               "overdue_airing_reminder_interval_mode": "Reminder interval",
@@ -440,14 +439,15 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
             },
             "data_description": {
+              "airing_interval_mode": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "overdue_airing_reminder_interval_mode": "0 disables reminders for this reason.",
+              "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
               "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
               "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
             },
-            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+            "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
           },
           "heat_loss": {
             "name": "Heat loss",
@@ -614,13 +614,11 @@
             "name": "Airing time",
             "data": {
               "reference_airing_time": "Reference airing time",
-              "maximum_airing_time_factor": "Maximum airing time factor",
-              "airing_interval": "Airing interval"
+              "maximum_airing_time_factor": "Maximum airing time factor"
             },
             "data_description": {
               "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
-              "airing_interval": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
             }
           },
           "warming_possible": {
@@ -706,6 +704,7 @@
           "overdue_airing": {
             "name": "Overdue airing",
             "data": {
+              "airing_interval": "Airing interval",
               "overdue_airing_notification_enabled": "Send notifications",
               "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
               "overdue_airing_reminder_interval": "Reminder interval",
@@ -714,14 +713,15 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
             },
             "data_description": {
+              "airing_interval": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "overdue_airing_reminder_interval": "0 disables reminders for this reason.",
+              "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
               "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
               "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
-            "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+            "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
           },
           "heat_loss": {
             "name": "Heat loss",
@@ -918,14 +918,11 @@
                 "reference_airing_time_mode": "Reference airing time",
                 "reference_airing_time": "Reference airing time (room value)",
                 "maximum_airing_time_factor_mode": "Maximum airing time factor",
-                "maximum_airing_time_factor": "Maximum airing time factor (room value)",
-                "airing_interval_mode": "Airing interval",
-                "airing_interval": "Airing interval (room value)"
+                "maximum_airing_time_factor": "Maximum airing time factor (room value)"
               },
               "data_description": {
                 "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-                "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
-                "airing_interval_mode": "Suggest airing after this many hours without an opening lasting at least the recommended airing time."
+                "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
               }
             },
             "warming_possible": {
@@ -1019,6 +1016,8 @@
             "overdue_airing": {
               "name": "Overdue airing",
               "data": {
+                "airing_interval_mode": "Airing interval",
+                "airing_interval": "Airing interval (room value)",
                 "overdue_airing_notification_enabled": "Send notifications",
                 "overdue_airing_notify_during_quiet_hours": "Notify during quiet hours",
                 "overdue_airing_reminder_interval_mode": "Reminder interval",
@@ -1029,14 +1028,15 @@
                 "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
               },
               "data_description": {
+                "airing_interval_mode": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
                 "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
                 "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-                "overdue_airing_reminder_interval_mode": "0 disables reminders for this reason.",
+                "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
                 "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
                 "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
               },
-              "description": "Suggest opening when the room has not had a recommended full-air-exchange airing within the interval."
+              "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
             },
             "heat_loss": {
               "name": "Heat loss",

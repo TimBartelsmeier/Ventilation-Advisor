@@ -65,6 +65,16 @@ def test_comfort_and_independent_goal_wording() -> None:
     for scenario in (*settings.SCENARIOS, *settings.PROTECT_SCENARIOS):
         assert sections[scenario]["description"]
         assert overrides[scenario]["description"] == sections[scenario]["description"]
+    overdue_fields = sections["overdue_airing"]
+    assert "airing_interval" in overdue_fields["data"]
+    assert "overdue_airing_reminder_interval" in overdue_fields["data"]
+    assert (
+        "repeat notifications"
+        in overdue_fields["data_description"]["overdue_airing_reminder_interval"]
+    )
+    overdue_overrides = overrides["overdue_airing"]
+    assert "airing_interval" in overdue_overrides["data"]
+    assert "overdue_airing_reminder_interval" in overdue_overrides["data"]
 
 
 def test_notify_wording_explains_legacy_action_limit() -> None:
