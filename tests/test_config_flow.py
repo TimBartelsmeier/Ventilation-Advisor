@@ -372,6 +372,23 @@ def test_airing_interval_selector_has_no_maximum(hass: HomeAssistant) -> None:
         assert selector(10_000) == 10_000
 
 
+@pytest.mark.parametrize("key", ["window_open_debounce", "window_close_debounce"])
+def test_window_delay_selector_allows_single_seconds(
+    hass: HomeAssistant, key: str
+) -> None:
+    section = next(
+        value
+        for marker, value in global_schema(hass, {}).schema.items()
+        if str(marker) == "advanced"
+    )
+    selector = next(
+        value for marker, value in section.schema.schema.items() if str(marker) == key
+    )
+    assert selector.config["step"] == 1
+    assert selector(7) == 7
+    assert settings.validate_value(settings.SETTINGS_BY_KEY[key], 7) is None
+
+
 def test_source_selectors_use_device_classes(hass: HomeAssistant) -> None:
     shared = settings.global_settings({})
     fields = {str(k): v for k, v in _room_schema({}, shared).schema.items()}
