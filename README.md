@@ -156,12 +156,12 @@ Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening s
 
 | Scenario key | Enabled | Goal reached | Reminder | Goal-reached reminder |
 |---|---|---|---|---|
-| `cooling_possible`, `warming_possible`, `drying_possible`, `humidifying_possible` | on | on | 120 min | 15 min |
-| `overdue_airing` | on | on | 120 min | 15 min |
+| `cooling_possible`, `warming_possible`, `drying_possible`, `humidifying_possible` | on | on | 120 min | 0 (off) |
+| `overdue_airing` | on | on | 120 min | 0 (off) |
 | `heat_loss`, `heat_gain`, `moisture_gain` | on | — | 15 min | — |
 | `moisture_loss` | off | — | 15 min | — |
 
-Zero disables that reminder. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
+Goal-reached reminders default to **0 (disabled)**. Zero disables a reminder; set a positive interval to enable it. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
 
 The overdue-airing defaults are an **8-hour airing interval** and a **120-minute reminder interval**. The first determines when the room becomes due for airing; the second controls repeat notifications after overdue advice has started.
 

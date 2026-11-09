@@ -73,7 +73,7 @@ def test_scenario_defaults() -> None:
         assert defaults[f"{prefix}_notification_enabled"]
         assert defaults[f"{prefix}_goal_reached_notification_enabled"]
         assert defaults[f"{prefix}_reminder_interval"] == 120
-        assert defaults[f"{prefix}_goal_reached_reminder_interval"] == 15
+        assert defaults[f"{prefix}_goal_reached_reminder_interval"] == 0
         assert not defaults[f"{prefix}_notify_during_quiet_hours"]
         assert not defaults[f"{prefix}_goal_reached_notify_during_quiet_hours"]
     for prefix in st.PROTECT_SCENARIOS:

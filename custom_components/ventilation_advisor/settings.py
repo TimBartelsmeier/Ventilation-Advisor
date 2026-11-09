@@ -209,7 +209,7 @@ def _scenario_settings(prefix: str) -> tuple[Setting, ...]:
                 ),
                 _number(
                     f"{prefix}_goal_reached_reminder_interval",
-                    15.0,
+                    0.0,
                     prefix,
                     "Goal-reached reminder interval",
                     0,

@@ -309,7 +309,13 @@ def test_reminder_intervals_per_recommendation() -> None:
     overdue_close = _ev(
         Recommendation.CLOSE, [ReasonInfo(Reason.OVERDUE_AIRING, "resolved", "aired")]
     )
-    assert reminder_interval_s(overdue_close, s) == 15 * 60
+    assert reminder_interval_s(overdue_close, s) is None
+    assert (
+        reminder_interval_s(
+            overdue_close, s | {"overdue_airing_goal_reached_reminder_interval": 15}
+        )
+        == 15 * 60
+    )
     hl = _ev(
         Recommendation.CLOSE,
         [
