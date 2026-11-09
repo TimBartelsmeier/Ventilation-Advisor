@@ -42,8 +42,10 @@ def test_global_only_scopes() -> None:
 def test_numbers_have_ranges_and_defaults_inside() -> None:
     for setting in st.SETTINGS:
         if setting.kind is Kind.NUMBER:
-            assert setting.minimum is not None and setting.maximum is not None
-            assert setting.minimum <= setting.default <= setting.maximum, setting.key
+            assert setting.minimum is not None
+            assert setting.minimum <= setting.default, setting.key
+            if setting.maximum is not None:
+                assert setting.default <= setting.maximum, setting.key
 
 
 def test_merge_sources_and_ignores_global_only_overrides() -> None:
@@ -93,7 +95,7 @@ def test_scenario_defaults() -> None:
         "maximum_airing_time_factor": 1.5,
         "airing_time_lower_limit": 5,
         "airing_time_upper_limit": 45,
-        "airing_interval": 8,
+        "airing_interval": 48,
         "condition_delay": 5,
         "goal_reached_delay": 1,
         "minimum_temperature_difference": 2,
@@ -108,7 +110,9 @@ def test_scenario_defaults() -> None:
     assert st.validate_value(st.SETTINGS_BY_KEY["airing_interval"], 24) is None
     assert st.SETTINGS_BY_KEY["airing_interval"].section == "overdue_airing"
     assert st.defaults()["overdue_airing_reminder_interval"] == 120
-    assert st.defaults()["airing_interval"] == 8
+    assert st.defaults()["airing_interval"] == 48
+    assert st.SETTINGS_BY_KEY["airing_interval"].minimum == 1
+    assert st.SETTINGS_BY_KEY["airing_interval"].maximum is None
 
 
 @pytest.mark.parametrize("prefix", (*st.SCENARIOS, *st.PROTECT_SCENARIOS))
@@ -181,6 +185,9 @@ def test_ordering_constraints() -> None:
         ("airing_time_upper_limit", -1),
         ("maximum_airing_time_factor", 0.99),
         ("airing_interval", 0),
+        ("airing_interval", 0.9),
+        ("airing_interval", float("inf")),
+        ("airing_interval", float("nan")),
         ("minimum_temperature_difference", 0),
         ("minimum_humidity_difference", 0),
         ("reference_airing_time", float("nan")),
@@ -212,7 +219,7 @@ def test_validate_value_kinds() -> None:
     by = st.SETTINGS_BY_KEY
     assert st.validate_value(by["quiet_hours_enabled"], 1) == "invalid_value"
     assert st.validate_value(by["airing_interval"], True) == "invalid_value"
-    assert st.validate_value(by["airing_interval"], 10_000) == "out_of_range"
+    assert st.validate_value(by["airing_interval"], 10_000) is None
     assert st.validate_value(by["quiet_hours_start"], "25:00") == "invalid_time"
     assert st.validate_value(by["quiet_hours_start"], "06:30") is None
     assert st.validate_value(by["notify_actions"], ["light.x"]) == "invalid_value"

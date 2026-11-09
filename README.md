@@ -164,7 +164,7 @@ Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening s
 
 Goal-reached reminders default to **0 (disabled)**. Zero disables a reminder; set a positive interval to enable it. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
 
-The overdue-airing defaults are an **8-hour airing interval** and a **120-minute reminder interval**. The first determines when the room becomes due for airing; the second controls repeat notifications after overdue advice has started.
+The overdue-airing defaults are a **48-hour airing interval** and a **120-minute reminder interval**. The airing interval has a **minimum of 1 hour and no maximum**. Its default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. The reminder interval controls repeat notifications after overdue advice has started.
 
 ### General and advanced
 

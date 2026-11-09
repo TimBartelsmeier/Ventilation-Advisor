@@ -357,6 +357,24 @@ def test_conditional_goal_toggles_and_advanced_sections(hass: HomeAssistant) -> 
     assert "location_phrase" not in {str(k) for k in _room_schema({}, shared).schema}
 
 
+def test_airing_interval_selector_has_no_maximum(hass: HomeAssistant) -> None:
+    for form in (
+        global_schema(hass, {}),
+        _overrides_schema(hass, {}, settings.defaults()),
+    ):
+        section = next(
+            value for key, value in form.schema.items() if str(key) == "overdue_airing"
+        )
+        selector = next(
+            value
+            for key, value in section.schema.schema.items()
+            if str(key) == "airing_interval"
+        )
+        assert selector.config["min"] == 1
+        assert selector.config.get("max") is None
+        assert selector(10_000) == 10_000
+
+
 def test_source_selectors_use_device_classes(hass: HomeAssistant) -> None:
     shared = settings.global_settings({})
     fields = {str(k): v for k, v in _room_schema({}, shared).schema.items()}

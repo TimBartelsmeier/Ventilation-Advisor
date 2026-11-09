@@ -122,7 +122,7 @@ def active_room(reason: Reason, **settings) -> Room:
         room.ih, room.ot = 30, 21
         room.outdoor_reference_rh(60)
     elif reason is Reason.OVERDUE_AIRING:
-        room.state.history_baseline_at = T0 - timedelta(hours=9)
+        room.state.history_baseline_at = T0 - timedelta(hours=49)
     room.eval(T0)
     room.eval(minute(5))
     return room
@@ -535,6 +535,16 @@ def test_goal_resolution_during_open_debounce_is_preserved() -> None:
     )
 
 
+@pytest.mark.parametrize("interval", [1, 48, 10_000])
+def test_overdue_airing_interval_deadline(interval: float) -> None:
+    room = Room(airing_interval=interval, condition_delay=0)
+    due = room.state.history_baseline_at + timedelta(hours=interval)
+    assert room.eval(due - timedelta(seconds=1)).recommendation is Recommendation.NONE
+    result = room.eval(due)
+    assert result.recommendation is Recommendation.OPEN
+    assert any(reason.reason is Reason.OVERDUE_AIRING for reason in result.reasons)
+
+
 def test_overdue_goal_uses_frozen_recommended_duration_and_qualifying_history() -> None:
     room = active_room(Reason.OVERDUE_AIRING, goal_reached_delay=0)
     opened = room.open()
@@ -549,7 +559,7 @@ def test_overdue_goal_uses_frozen_recommended_duration_and_qualifying_history() 
     assert room.state.last_airing_at is None
     room.close(at=20)
     assert room.state.last_airing_at == minute(20)
-    assert room.eval(minute(21)).next_airing_due_at == minute(20) + timedelta(hours=8)
+    assert room.eval(minute(21)).next_airing_due_at == minute(20) + timedelta(hours=48)
 
 
 def test_disabling_overdue_does_not_count_short_openings() -> None:

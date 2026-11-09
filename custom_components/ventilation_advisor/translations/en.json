@@ -137,7 +137,7 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
             },
             "data_description": {
-              "airing_interval": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
+              "airing_interval": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
@@ -441,7 +441,7 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
             },
             "data_description": {
-              "airing_interval_mode": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
+              "airing_interval_mode": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
@@ -717,7 +717,7 @@
               "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval"
             },
             "data_description": {
-              "airing_interval": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
+              "airing_interval": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
@@ -1032,7 +1032,7 @@
                 "overdue_airing_goal_reached_reminder_interval": "Goal-reached reminder interval (room value)"
               },
               "data_description": {
-                "airing_interval_mode": "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
+                "airing_interval_mode": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
                 "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
                 "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",

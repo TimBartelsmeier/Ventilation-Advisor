@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
+from math import isfinite
 from typing import Any
 
 from .const import (
@@ -133,7 +134,7 @@ def _number(
     section: str,
     label: str,
     minimum: float,
-    maximum: float,
+    maximum: float | None,
     step: float,
     unit: str | None = None,
     description: str = "",
@@ -325,14 +326,14 @@ SETTINGS: tuple[Setting, ...] = (
     ),
     _number(
         "airing_interval",
-        8,
+        48,
         "overdue_airing",
         "Airing interval",
-        0.1,
-        72,
+        1,
+        None,
         0.1,
         "h",
-        "Time between required airings. The first overdue suggestion starts after this interval; repeat notifications use the separate Reminder interval.",
+        "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
     ),
     *tuple(
         s
@@ -568,8 +569,14 @@ def validate_value(setting: Setting, value: Any) -> str | None:
     if setting.kind is Kind.NUMBER:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return "invalid_value"
-        assert setting.minimum is not None and setting.maximum is not None
-        return None if setting.minimum <= value <= setting.maximum else "out_of_range"
+        assert setting.minimum is not None
+        return (
+            None
+            if isfinite(value)
+            and value >= setting.minimum
+            and (setting.maximum is None or value <= setting.maximum)
+            else "out_of_range"
+        )
     if setting.kind is Kind.TIME:
         return None if parse_time(value) is not None else "invalid_time"
     if setting.kind is Kind.LANGUAGE:
