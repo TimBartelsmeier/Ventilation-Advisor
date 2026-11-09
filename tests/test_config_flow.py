@@ -325,10 +325,7 @@ def test_conditional_goal_toggles_and_advanced_sections(hass: HomeAssistant) -> 
             )
             assert close.visible["field"] == f"{scenario}_notification_enabled"
         assert not sections["comfort"].options["collapsed"]
-        if form is global_form:
-            assert sections["advanced"].options["collapsed"]
-        else:
-            assert "advanced" not in sections
+        assert sections["advanced"].options["collapsed"]
         assert sections["airing_time_advanced"].options["collapsed"]
         assert not sections["notifications"].options["collapsed"]
     fields = {

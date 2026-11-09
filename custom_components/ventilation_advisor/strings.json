@@ -157,7 +157,7 @@
             "data_description": {
               "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
           },
@@ -171,7 +171,7 @@
             "data_description": {
               "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
           },
@@ -180,12 +180,12 @@
             "data": {
               "moisture_loss_notification_enabled": "Send notifications",
               "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_loss_reminder_interval": "Reminder interval"
+              "moisture_loss_reminder_factor": "Reminder interval factor"
             },
             "data_description": {
               "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_loss_reminder_interval": "0 disables reminders for this reason."
+              "moisture_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
           },
@@ -194,12 +194,12 @@
             "data": {
               "moisture_gain_notification_enabled": "Send notifications",
               "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_gain_reminder_interval": "Reminder interval"
+              "moisture_gain_reminder_factor": "Reminder interval factor"
             },
             "data_description": {
               "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_gain_reminder_interval": "0 disables reminders for this reason."
+              "moisture_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
           },
@@ -255,7 +255,7 @@
           "advanced": {
             "name": "Advanced",
             "data": {
-              "minimum_thermal_reminder_interval": "Minimum thermal reminder interval",
+              "minimum_safeguard_reminder_interval": "Minimum safeguard reminder interval",
               "condition_delay": "Condition delay",
               "goal_reached_delay": "Goal-reached delay",
               "minimum_temperature_difference": "Minimum temperature difference",
@@ -265,7 +265,7 @@
               "problem_report_delay": "Problem report delay"
             },
             "data_description": {
-              "minimum_thermal_reminder_interval": "Minimum time between Heat loss or Heat gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
+              "minimum_safeguard_reminder_interval": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
               "condition_delay": "How long conditions must hold before an open suggestion.",
               "goal_reached_delay": "How long a comfort goal's reached condition must hold.",
               "minimum_temperature_difference": "Meaningful outdoor-air pull; released below half this difference.",
@@ -322,9 +322,13 @@
             },
             "data_description": {
               "comfort_lower_temperature_mode": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+              "comfort_lower_temperature": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
               "comfort_upper_temperature_mode": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+              "comfort_upper_temperature": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
               "comfort_lower_humidity_mode": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
-              "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+              "comfort_lower_humidity": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+              "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width.",
+              "comfort_upper_humidity": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
             }
           },
           "airing_time": {
@@ -337,7 +341,9 @@
             },
             "data_description": {
               "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-              "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
+              "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+              "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+              "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
             }
           },
           "warming_possible": {
@@ -356,9 +362,11 @@
               "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
               "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "warming_possible_reminder_interval": "0 disables reminders for this reason.",
               "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-              "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+              "warming_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
             "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
           },
@@ -378,9 +386,11 @@
               "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
               "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
               "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-              "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+              "cooling_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
             "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
           },
@@ -400,9 +410,11 @@
               "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
               "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "drying_possible_reminder_interval": "0 disables reminders for this reason.",
               "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-              "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+              "drying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
             "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
           },
@@ -422,9 +434,11 @@
               "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
               "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+              "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
               "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-              "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+              "humidifying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
             "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
           },
@@ -444,12 +458,15 @@
             },
             "data_description": {
               "airing_interval_mode": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
+              "airing_interval": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
               "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
               "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
+              "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
               "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
               "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-              "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+              "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+              "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
             },
             "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
           },
@@ -464,7 +481,8 @@
             "data_description": {
               "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+              "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
           },
@@ -479,7 +497,8 @@
             "data_description": {
               "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+              "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
           },
@@ -488,13 +507,14 @@
             "data": {
               "moisture_loss_notification_enabled": "Send notifications",
               "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_loss_reminder_interval_mode": "Reminder interval",
-              "moisture_loss_reminder_interval": "Reminder interval (room value)"
+              "moisture_loss_reminder_factor_mode": "Reminder interval factor",
+              "moisture_loss_reminder_factor": "Reminder interval factor (room value)"
             },
             "data_description": {
               "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_loss_reminder_interval_mode": "0 disables reminders for this reason."
+              "moisture_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+              "moisture_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
           },
@@ -503,13 +523,14 @@
             "data": {
               "moisture_gain_notification_enabled": "Send notifications",
               "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_gain_reminder_interval_mode": "Reminder interval",
-              "moisture_gain_reminder_interval": "Reminder interval (room value)"
+              "moisture_gain_reminder_factor_mode": "Reminder interval factor",
+              "moisture_gain_reminder_factor": "Reminder interval factor (room value)"
             },
             "data_description": {
               "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_gain_reminder_interval_mode": "0 disables reminders for this reason."
+              "moisture_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+              "moisture_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
           },
@@ -558,17 +579,20 @@
             },
             "data_description": {
               "airing_time_lower_limit_mode": "Positive lower clamp; must not exceed the upper clamp.",
-              "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing."
+              "airing_time_lower_limit": "Positive lower clamp; must not exceed the upper clamp.",
+              "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing.",
+              "airing_time_upper_limit": "Positive upper clamp; also used when either temperature is missing."
             }
           },
           "advanced": {
             "name": "Advanced",
             "data": {
-              "minimum_thermal_reminder_interval_mode": "Minimum thermal reminder interval",
-              "minimum_thermal_reminder_interval": "Minimum thermal reminder interval (room value)"
+              "minimum_safeguard_reminder_interval_mode": "Minimum safeguard reminder interval",
+              "minimum_safeguard_reminder_interval": "Minimum safeguard reminder interval (room value)"
             },
             "data_description": {
-              "minimum_thermal_reminder_interval_mode": "Minimum time between Heat loss or Heat gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders."
+              "minimum_safeguard_reminder_interval_mode": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
+              "minimum_safeguard_reminder_interval": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders."
             }
           }
         }
@@ -749,7 +773,7 @@
             "data_description": {
               "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
           },
@@ -763,7 +787,7 @@
             "data_description": {
               "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+              "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
           },
@@ -772,12 +796,12 @@
             "data": {
               "moisture_loss_notification_enabled": "Send notifications",
               "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_loss_reminder_interval": "Reminder interval"
+              "moisture_loss_reminder_factor": "Reminder interval factor"
             },
             "data_description": {
               "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_loss_reminder_interval": "0 disables reminders for this reason."
+              "moisture_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
           },
@@ -786,12 +810,12 @@
             "data": {
               "moisture_gain_notification_enabled": "Send notifications",
               "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
-              "moisture_gain_reminder_interval": "Reminder interval"
+              "moisture_gain_reminder_factor": "Reminder interval factor"
             },
             "data_description": {
               "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
               "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-              "moisture_gain_reminder_interval": "0 disables reminders for this reason."
+              "moisture_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
             },
             "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
           },
@@ -847,7 +871,7 @@
           "advanced": {
             "name": "Advanced",
             "data": {
-              "minimum_thermal_reminder_interval": "Minimum thermal reminder interval",
+              "minimum_safeguard_reminder_interval": "Minimum safeguard reminder interval",
               "condition_delay": "Condition delay",
               "goal_reached_delay": "Goal-reached delay",
               "minimum_temperature_difference": "Minimum temperature difference",
@@ -857,7 +881,7 @@
               "problem_report_delay": "Problem report delay"
             },
             "data_description": {
-              "minimum_thermal_reminder_interval": "Minimum time between Heat loss or Heat gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
+              "minimum_safeguard_reminder_interval": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
               "condition_delay": "How long conditions must hold before an open suggestion.",
               "goal_reached_delay": "How long a comfort goal's reached condition must hold.",
               "minimum_temperature_difference": "Meaningful outdoor-air pull; released below half this difference.",
@@ -925,9 +949,13 @@
               },
               "data_description": {
                 "comfort_lower_temperature_mode": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
+                "comfort_lower_temperature": "Must be below the upper temperature. A heating setpoint lifts the effective lower bound to max(lower comfort limit, setpoint).",
                 "comfort_upper_temperature_mode": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
+                "comfort_upper_temperature": "The effective upper bound is max(upper comfort limit, effective lower bound + 1 °C).",
                 "comfort_lower_humidity_mode": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
-                "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
+                "comfort_lower_humidity": "Must be below the upper humidity. Indoor and outdoor humidity are judged at max(indoor temperature, heating setpoint).",
+                "comfort_upper_humidity_mode": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width.",
+                "comfort_upper_humidity": "The humidity window is unchanged by heating. Fixed hysteresis is 0.5 °C / 3 %RH, capped at one quarter of each window's width."
               }
             },
             "airing_time": {
@@ -940,7 +968,9 @@
               },
               "data_description": {
                 "reference_airing_time_mode": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
-                "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
+                "reference_airing_time": "Recommended time at a 10 °C indoor/outdoor difference. Time scales with the square root of 10 divided by the temperature difference, clamped to the advanced limits. Increase for large rooms or small/tilted windows.",
+                "maximum_airing_time_factor_mode": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time.",
+                "maximum_airing_time_factor": "Maximum time = recommended time × this factor. Both times are fixed when opening is confirmed. Adverse-effect close suggestions never start before the maximum time."
               }
             },
             "warming_possible": {
@@ -959,9 +989,11 @@
                 "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
                 "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "warming_possible_reminder_interval": "0 disables reminders for this reason.",
                 "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "warming_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-                "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+                "warming_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+                "warming_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
               },
               "description": "Suggest opening when outdoor air can warm the room toward its comfort range or heating setpoint."
             },
@@ -981,9 +1013,11 @@
                 "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
                 "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
                 "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "cooling_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-                "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+                "cooling_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+                "cooling_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
               },
               "description": "Suggest opening when outdoor air can cool the room toward its comfort range."
             },
@@ -1003,9 +1037,11 @@
                 "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
                 "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "drying_possible_reminder_interval": "0 disables reminders for this reason.",
                 "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "drying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-                "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+                "drying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+                "drying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
               },
               "description": "Suggest opening when outdoor air can reduce excess humidity, compared at the indoor temperature or heating setpoint."
             },
@@ -1025,9 +1061,11 @@
                 "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
                 "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
+                "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
                 "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "humidifying_possible_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-                "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+                "humidifying_possible_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+                "humidifying_possible_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
               },
               "description": "Suggest opening when outdoor air can raise low humidity, compared at the indoor temperature or heating setpoint."
             },
@@ -1047,12 +1085,15 @@
               },
               "data_description": {
                 "airing_interval_mode": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
+                "airing_interval": "Time between required airings (minimum 1 hour, no maximum). The 48-hour default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. Repeat notifications use the separate Reminder interval.",
                 "overdue_airing_notification_enabled": "Enable this scenario's open suggestions.",
                 "overdue_airing_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "overdue_airing_reminder_interval_mode": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
+                "overdue_airing_reminder_interval": "Delay between repeat notifications while airing is overdue; independent of how often airing is due. 0 disables reminders.",
                 "overdue_airing_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
                 "overdue_airing_goal_reached_notify_during_quiet_hours": "Allow this scenario's goal-reached notifications and reminders during quiet hours.",
-                "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal."
+                "overdue_airing_goal_reached_reminder_interval_mode": "0 disables reminders for this reached goal.",
+                "overdue_airing_goal_reached_reminder_interval": "0 disables reminders for this reached goal."
               },
               "description": "Suggest opening when no qualifying airing has occurred within the airing interval. This sets how often airing is due; the reminder interval controls repeat notifications while it remains overdue."
             },
@@ -1067,7 +1108,8 @@
               "data_description": {
                 "heat_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
                 "heat_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-                "heat_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+                "heat_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+                "heat_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
               },
               "description": "After the maximum airing time, suggest closing if further airing risks cooling below the effective lower temperature bound."
             },
@@ -1082,7 +1124,8 @@
               "data_description": {
                 "heat_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
                 "heat_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-                "heat_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum thermal reminder interval. 0 disables reminders."
+                "heat_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+                "heat_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
               },
               "description": "After the maximum airing time, suggest closing if further airing risks warming above the effective upper temperature bound."
             },
@@ -1091,13 +1134,14 @@
               "data": {
                 "moisture_loss_notification_enabled": "Send notifications",
                 "moisture_loss_notify_during_quiet_hours": "Notify during quiet hours",
-                "moisture_loss_reminder_interval_mode": "Reminder interval",
-                "moisture_loss_reminder_interval": "Reminder interval (room value)"
+                "moisture_loss_reminder_factor_mode": "Reminder interval factor",
+                "moisture_loss_reminder_factor": "Reminder interval factor (room value)"
               },
               "data_description": {
                 "moisture_loss_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
                 "moisture_loss_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-                "moisture_loss_reminder_interval_mode": "0 disables reminders for this reason."
+                "moisture_loss_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+                "moisture_loss_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
               },
               "description": "After the maximum airing time, suggest closing if further airing risks making the room too dry."
             },
@@ -1106,13 +1150,14 @@
               "data": {
                 "moisture_gain_notification_enabled": "Send notifications",
                 "moisture_gain_notify_during_quiet_hours": "Notify during quiet hours",
-                "moisture_gain_reminder_interval_mode": "Reminder interval",
-                "moisture_gain_reminder_interval": "Reminder interval (room value)"
+                "moisture_gain_reminder_factor_mode": "Reminder interval factor",
+                "moisture_gain_reminder_factor": "Reminder interval factor (room value)"
               },
               "data_description": {
                 "moisture_gain_notification_enabled": "Suggest closing only after the maximum airing time, when outdoor air is adverse at a comfort-window edge.",
                 "moisture_gain_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
-                "moisture_gain_reminder_interval_mode": "0 disables reminders for this reason."
+                "moisture_gain_reminder_factor_mode": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders.",
+                "moisture_gain_reminder_factor": "Repeat after this multiple of the opening's maximum airing time, subject to the advanced minimum safeguard reminder interval. 0 disables reminders."
               },
               "description": "After the maximum airing time, suggest closing if further airing risks making the room too humid."
             },
@@ -1161,17 +1206,20 @@
               },
               "data_description": {
                 "airing_time_lower_limit_mode": "Positive lower clamp; must not exceed the upper clamp.",
-                "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing."
+                "airing_time_lower_limit": "Positive lower clamp; must not exceed the upper clamp.",
+                "airing_time_upper_limit_mode": "Positive upper clamp; also used when either temperature is missing.",
+                "airing_time_upper_limit": "Positive upper clamp; also used when either temperature is missing."
               }
             },
             "advanced": {
               "name": "Advanced",
               "data": {
-                "minimum_thermal_reminder_interval_mode": "Minimum thermal reminder interval",
-                "minimum_thermal_reminder_interval": "Minimum thermal reminder interval (room value)"
+                "minimum_safeguard_reminder_interval_mode": "Minimum safeguard reminder interval",
+                "minimum_safeguard_reminder_interval": "Minimum safeguard reminder interval (room value)"
               },
               "data_description": {
-                "minimum_thermal_reminder_interval_mode": "Minimum time between Heat loss or Heat gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders."
+                "minimum_safeguard_reminder_interval_mode": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
+                "minimum_safeguard_reminder_interval": "Minimum time between Heat loss, Heat gain, Moisture loss or Moisture gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders."
               }
             }
           }

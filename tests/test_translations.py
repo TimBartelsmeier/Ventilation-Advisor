@@ -63,8 +63,8 @@ def test_comfort_and_independent_goal_wording() -> None:
     overrides = data["config"]["step"]["overrides"]["sections"]
     assert "outdoor" not in overrides
     assert set(overrides["advanced"]["data"]) == {
-        "minimum_thermal_reminder_interval_mode",
-        "minimum_thermal_reminder_interval",
+        "minimum_safeguard_reminder_interval_mode",
+        "minimum_safeguard_reminder_interval",
     }
     for scenario in (*settings.SCENARIOS, *settings.PROTECT_SCENARIOS):
         assert sections[scenario]["description"]
@@ -97,6 +97,23 @@ def test_notify_wording_explains_legacy_action_limit() -> None:
         assert "Modern notify entities" in description
         assert "notify.send_message" in description
         assert "not supported" in description
+
+
+def test_safeguard_factor_inputs_have_labels_and_descriptions() -> None:
+    data = generate_translations.build()
+    steps = [
+        data["config"]["step"]["user"],
+        data["options"]["step"]["init"],
+        data["config"]["step"]["overrides"],
+        data["config_subentries"]["room"]["step"]["overrides"],
+    ]
+    for step in steps:
+        for scenario in settings.PROTECT_SCENARIOS:
+            section = step["sections"][scenario]
+            key = f"{scenario}_reminder_factor"
+            assert section["data"][key].startswith("Reminder interval factor")
+            assert "maximum airing time" in section["data_description"][key]
+            assert "0 disables reminders" in section["data_description"][key]
 
 
 def test_every_setting_has_label_and_description() -> None:

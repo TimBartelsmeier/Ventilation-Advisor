@@ -14,6 +14,7 @@ from .const import (
     Recommendation,
 )
 from .engine import Evaluation
+from .settings import PROTECT_SCENARIOS
 
 
 @dataclass(slots=True)
@@ -56,19 +57,16 @@ def reminder_interval_s(
     minutes: list[float] = []
     if evaluation.recommendation in (Recommendation.OPEN, Recommendation.CLOSE):
         for reason in evaluation.reasons:
-            if (
-                reason.reason in ("heat_loss", "heat_gain")
-                and reason.status != "resolved"
-            ):
+            if reason.reason in PROTECT_SCENARIOS and reason.status != "resolved":
                 factor = settings[f"{reason.reason}_reminder_factor"]
                 if factor > 0:
                     if evaluation.maximum_duration_s is None:
                         raise ValueError(
-                            "Thermal reminders require a maximum airing time"
+                            "Safeguard reminders require a maximum airing time"
                         )
                     minutes.append(
                         max(
-                            settings["minimum_thermal_reminder_interval"],
+                            settings["minimum_safeguard_reminder_interval"],
                             factor * evaluation.maximum_duration_s / 60,
                         )
                     )

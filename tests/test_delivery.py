@@ -355,20 +355,22 @@ def test_reminder_intervals_per_recommendation() -> None:
     assert reminder_interval_s(open_ev, zero) is None
 
 
-@pytest.mark.parametrize("reason", ["heat_loss", "heat_gain"])
+@pytest.mark.parametrize(
+    "reason", ["heat_loss", "heat_gain", "moisture_loss", "moisture_gain"]
+)
 @pytest.mark.parametrize("status", ["active", "releasing"])
 @pytest.mark.parametrize(
     ("maximum", "factor", "minimum", "expected"),
     [(900, 0.75, 3, 675), (120, 0.75, 3, 180), (900, 0.5, 10, 600), (900, 0, 3, None)],
 )
-def test_thermal_reminder_factor_and_minimum(
+def test_safeguard_reminder_factor_and_minimum(
     reason, status, maximum, factor, minimum, expected
 ):
     ev = _ev(Recommendation.CLOSE, [ReasonInfo(reason, status)])
     ev.maximum_duration_s = maximum
     settings = defaults() | {
         f"{reason}_reminder_factor": factor,
-        "minimum_thermal_reminder_interval": minimum,
+        "minimum_safeguard_reminder_interval": minimum,
     }
     assert reminder_interval_s(ev, settings) == expected
 

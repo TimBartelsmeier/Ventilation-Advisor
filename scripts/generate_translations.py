@@ -153,6 +153,7 @@ def _overrides_step() -> dict[str, Any]:
                 data[s.key] = f"{s.label} (room value)"
                 if s.description:
                     descriptions[f"{s.key}{MODE}"] = s.description
+                    descriptions[s.key] = s.description
         if data:
             sections[section_id] = {
                 "name": SECTION_LABELS[section_id],

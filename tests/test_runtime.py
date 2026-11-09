@@ -780,7 +780,7 @@ async def test_temperature_outage_retains_protection_and_recovers(
         hass,
         options=global_options(
             notify_actions=["notify.phone"],
-            minimum_thermal_reminder_interval=15,
+            minimum_safeguard_reminder_interval=15,
             reference_airing_time=1,
             airing_time_lower_limit=1,
             airing_time_upper_limit=1,
