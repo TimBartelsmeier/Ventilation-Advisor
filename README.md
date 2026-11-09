@@ -212,8 +212,10 @@ The generator uses settings metadata to produce the English configuration string
 - Additional configuration languages.
 - Drying (and other) advice based on how high the indoor humidity is above the comfort band.
 - Seasonal close advice using heating season, outdoor averages or forecasts: for example, protect summer coolness before reaching the upper comfort edge.
+- CO2/AQI warnings.
 - Humidity influence on recommended airing times.
 - Room snoozing and vacation mode.
 - Bundled notifications and silent reminder/content updates.
 - How to handle unavailable sensors in rooms with multiple sensors, including dead batteries.
 - Entities and/or cards for dashboard integration.
+- Rename project to prevent name collision.
