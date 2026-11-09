@@ -233,7 +233,9 @@ async def test_heat_loss_notifies_during_quiet_hours_by_default(
     await clock.advance(182)
     assert recommendation(hass) == "close"
     assert len(notify.for_service("phone")) == 1
-    await clock.advance(901)
+    await clock.advance(179)
+    assert len(notify.for_service("phone")) == 1
+    await clock.advance(2)
     assert len(notify.for_service("phone")) == 2
 
 
@@ -321,7 +323,7 @@ async def test_quiet_mixed_message_filters_reasons_and_reminders(
             "humidity_reference_temperature": 21,
         },
     )
-    room.config.settings["heat_loss_reminder_interval"] = 30
+    room.config.settings["heat_loss_reminder_factor"] = 3
     room.config.settings["drying_possible_goal_reached_reminder_interval"] = 5
     quiet_message = room.desired_message(quiet=True)
     assert quiet_message.quiet_exempt
@@ -778,6 +780,7 @@ async def test_temperature_outage_retains_protection_and_recovers(
         hass,
         options=global_options(
             notify_actions=["notify.phone"],
+            minimum_thermal_reminder_interval=15,
             reference_airing_time=1,
             airing_time_lower_limit=1,
             airing_time_upper_limit=1,

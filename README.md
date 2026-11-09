@@ -151,7 +151,7 @@ Selectors filter by corresponding entity/device classes.
 
 ### Per-scenario notifications
 
-Every scenario has `<scenario>_notification_enabled` and `<scenario>_reminder_interval`. The overdue-airing scenario also has `airing_interval`, which determines how long since a qualifying airing before the first suggestion is due. Its separate `overdue_airing_reminder_interval` controls how often to repeat the suggestion while airing remains overdue. Opening scenarios additionally have `<scenario>_goal_reached_notification_enabled` and `<scenario>_goal_reached_reminder_interval`. Goal-reached advice requires that scenario's main notification switch. These settings are global with room overrides.
+Every scenario has `<scenario>_notification_enabled`. Reminder intervals use `<scenario>_reminder_interval` in minutes, except Heat loss and Heat gain, which use `<scenario>_reminder_factor` times the opening's fixed maximum airing time. Their interval is at least `minimum_thermal_reminder_interval` (default **3 minutes**, configured under Advanced). For example, a 15-minute maximum airing time gives reminders every 11.25 minutes at the default factor of 0.75. The overdue-airing scenario also has `airing_interval`, which determines how long since a qualifying airing before the first suggestion is due. Its separate `overdue_airing_reminder_interval` controls how often to repeat the suggestion while airing remains overdue. Opening scenarios additionally have `<scenario>_goal_reached_notification_enabled` and `<scenario>_goal_reached_reminder_interval`. Goal-reached advice requires that scenario's main notification switch. These settings are global with room overrides.
 
 Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening scenarios have a separate `<scenario>_goal_reached_notify_during_quiet_hours` for completion advice. These switches apply to initial notifications and reminders. All default to **off**, except **Heat loss suggestions**, which default to **on**.
 
@@ -159,10 +159,11 @@ Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening s
 |---|---|---|---|---|
 | `cooling_possible`, `warming_possible`, `drying_possible`, `humidifying_possible` | on | on | 120 min | 0 (off) |
 | `overdue_airing` | on | on | 120 min | 0 (off) |
-| `heat_loss`, `heat_gain`, `moisture_gain` | on | — | 15 min | — |
+| `heat_loss`, `heat_gain` | on | — | 0.75 × maximum airing time (minimum 3 min) | — |
+| `moisture_gain` | on | — | 15 min | — |
 | `moisture_loss` | off | — | 15 min | — |
 
-Goal-reached reminders default to **0 (disabled)**. Zero disables a reminder; set a positive interval to enable it. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
+Goal-reached reminders default to **0 (disabled)**. Zero disables a reminder, including a zero thermal reminder factor; set a positive interval or factor to enable it. A global reminder switch can disable all reminders. When advice contains several reasons, the shortest positive applicable interval is used.
 
 The overdue-airing defaults are a **48-hour airing interval** and a **120-minute reminder interval**. The airing interval has a **minimum of 1 hour and no maximum**. Its default deliberately avoids frequent alerts for infrequently used rooms; decrease it for frequently used rooms. The reminder interval controls repeat notifications after overdue advice has started.
 
@@ -176,6 +177,7 @@ The overdue-airing defaults are a **48-hour airing interval** and a **120-minute
 | Notification language | English (default) or German | global |
 | Quiet hours enabled, start, end | on, 22:00–07:00 | global + room |
 | Reminders enabled | on | global + room |
+| `minimum_thermal_reminder_interval` | 3 min | global + room |
 | `condition_delay` / `goal_reached_delay` | 5 / 1 min | global |
 | `minimum_temperature_difference` | 2 °C | global |
 | `minimum_humidity_difference` | 5 percentage points at reference temperature | global |

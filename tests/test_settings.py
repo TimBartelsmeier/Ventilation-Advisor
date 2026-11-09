@@ -81,12 +81,17 @@ def test_scenario_defaults() -> None:
         assert not defaults[f"{prefix}_goal_reached_notify_during_quiet_hours"]
     for prefix in st.PROTECT_SCENARIOS:
         assert defaults[f"{prefix}_notification_enabled"] is (prefix != "moisture_loss")
-        assert defaults[f"{prefix}_reminder_interval"] == 15
+        if prefix in ("heat_loss", "heat_gain"):
+            assert defaults[f"{prefix}_reminder_factor"] == 0.75
+            assert f"{prefix}_reminder_interval" not in defaults
+        else:
+            assert defaults[f"{prefix}_reminder_interval"] == 15
         assert f"{prefix}_goal_reached_notification_enabled" not in defaults
         assert defaults[f"{prefix}_notify_during_quiet_hours"] is (
             prefix == "heat_loss"
         )
     expected = {
+        "minimum_thermal_reminder_interval": 3,
         "comfort_lower_temperature": 19,
         "comfort_upper_temperature": 23,
         "comfort_lower_humidity": 40,
@@ -125,6 +130,18 @@ def test_quiet_permission_supports_room_override(prefix: str) -> None:
     assert not st.validate_effective(effective)
 
 
+def test_thermal_reminder_settings_support_room_overrides() -> None:
+    overrides = {
+        "heat_loss_reminder_factor": 0.5,
+        "heat_gain_reminder_factor": 1,
+        "minimum_thermal_reminder_interval": 5,
+    }
+    effective, sources = st.merge({}, overrides)
+    assert overrides.items() <= effective.items()
+    assert all(sources[key] == "room" for key in overrides)
+    assert st.validate_effective(effective) == {}
+
+
 def test_no_legacy_settings_or_aliases() -> None:
     retired = {
         "drying_possible_start_relative_humidity",
@@ -137,6 +154,8 @@ def test_no_legacy_settings_or_aliases() -> None:
         "cooling_possible_min_outdoor_temperature",
         "overdue_airing_interval",
         "heat_loss_reminder_interval_ratio",
+        "heat_loss_reminder_interval",
+        "heat_gain_reminder_interval",
         "recommended_airing_time_shortest",
         "maximum_airing_time_longest",
     }

@@ -157,6 +157,7 @@ def _number(
 
 
 def _scenario_settings(prefix: str) -> tuple[Setting, ...]:
+    thermal = prefix in ("heat_loss", "heat_gain")
     fields = [
         Setting(
             f"{prefix}_notification_enabled",
@@ -177,16 +178,20 @@ def _scenario_settings(prefix: str) -> tuple[Setting, ...]:
             "Allow this scenario's suggestions and reminders during quiet hours.",
         ),
         _number(
-            f"{prefix}_reminder_interval",
-            120.0 if prefix in SCENARIOS else 15.0,
+            f"{prefix}_reminder_factor" if thermal else f"{prefix}_reminder_interval",
+            0.75 if thermal else (120.0 if prefix in SCENARIOS else 15.0),
             prefix,
-            "Reminder interval",
+            "Reminder interval factor" if thermal else "Reminder interval",
             0,
-            1440,
-            5,
-            "min",
+            10 if thermal else 1440,
+            0.05 if thermal else 5,
+            None if thermal else "min",
             (
-                "Delay between repeat notifications while airing is overdue; "
+                "Repeat after this multiple of the opening's maximum airing time, "
+                "subject to the advanced minimum thermal reminder interval. "
+                "0 disables reminders."
+                if thermal
+                else "Delay between repeat notifications while airing is overdue; "
                 "independent of how often airing is due. 0 disables reminders."
                 if prefix == "overdue_airing"
                 else "0 disables reminders for this reason."
@@ -437,6 +442,17 @@ SETTINGS: tuple[Setting, ...] = (
         0.5,
         "min",
         "Positive upper clamp; also used when either temperature is missing.",
+    ),
+    _number(
+        "minimum_thermal_reminder_interval",
+        3,
+        "advanced",
+        "Minimum thermal reminder interval",
+        0.1,
+        1440,
+        0.1,
+        "min",
+        "Minimum time between Heat loss or Heat gain reminders. The interval is the larger of this value and the scenario's factor × the opening's maximum airing time. A zero factor still disables reminders.",
     ),
     _number(
         "condition_delay",

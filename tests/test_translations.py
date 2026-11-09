@@ -61,7 +61,11 @@ def test_comfort_and_independent_goal_wording() -> None:
     )
     assert "√" in sections["airing_time_advanced"]["description"]
     overrides = data["config"]["step"]["overrides"]["sections"]
-    assert "outdoor" not in overrides and "advanced" not in overrides
+    assert "outdoor" not in overrides
+    assert set(overrides["advanced"]["data"]) == {
+        "minimum_thermal_reminder_interval_mode",
+        "minimum_thermal_reminder_interval",
+    }
     for scenario in (*settings.SCENARIOS, *settings.PROTECT_SCENARIOS):
         assert sections[scenario]["description"]
         assert overrides[scenario]["description"] == sections[scenario]["description"]

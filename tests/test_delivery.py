@@ -323,13 +323,14 @@ def test_reminder_intervals_per_recommendation() -> None:
             ReasonInfo("drying_possible", "resolved", "drying_possible_target_reached"),
         ],
     )
+    hl.maximum_duration_s = 20 * 60
     assert reminder_interval_s(hl, s) == 15 * 60
     assert (
         reminder_interval_s(
             hl,
             s
             | {
-                "heat_loss_reminder_interval": 0,
+                "heat_loss_reminder_factor": 0,
                 "drying_possible_goal_reached_reminder_interval": 0,
             },
         )
@@ -340,7 +341,7 @@ def test_reminder_intervals_per_recommendation() -> None:
             hl,
             s
             | {
-                "heat_loss_reminder_interval": 30,
+                "heat_loss_reminder_factor": 1.5,
                 "drying_possible_goal_reached_reminder_interval": 10,
             },
         )
@@ -352,6 +353,24 @@ def test_reminder_intervals_per_recommendation() -> None:
         "overdue_airing_reminder_interval": 0,
     }
     assert reminder_interval_s(open_ev, zero) is None
+
+
+@pytest.mark.parametrize("reason", ["heat_loss", "heat_gain"])
+@pytest.mark.parametrize("status", ["active", "releasing"])
+@pytest.mark.parametrize(
+    ("maximum", "factor", "minimum", "expected"),
+    [(900, 0.75, 3, 675), (120, 0.75, 3, 180), (900, 0.5, 10, 600), (900, 0, 3, None)],
+)
+def test_thermal_reminder_factor_and_minimum(
+    reason, status, maximum, factor, minimum, expected
+):
+    ev = _ev(Recommendation.CLOSE, [ReasonInfo(reason, status)])
+    ev.maximum_duration_s = maximum
+    settings = defaults() | {
+        f"{reason}_reminder_factor": factor,
+        "minimum_thermal_reminder_interval": minimum,
+    }
+    assert reminder_interval_s(ev, settings) == expected
 
 
 def test_fingerprint_ignores_values() -> None:
