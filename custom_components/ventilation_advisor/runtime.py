@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -189,20 +189,40 @@ class RoomRuntime:
         now = dt_util.utcnow()
         if stored.state is None:
             self.state = RoomState(history_baseline_at=now)
+            _LOGGER.debug("Room %s: starting with fresh history", self.config.name)
             return
         self.state = stored.state
-        if not self._can_resume(stored):
+        resume = self._can_resume(stored)
+        _LOGGER.debug(
+            "Room %s: restoring state; resume_session=%s saved_at=%s",
+            self.config.name,
+            resume,
+            stored.saved_at,
+        )
+        if not resume:
             self.state.finalize_after_restart()
 
     def _can_resume(self, stored: StoredRoom) -> bool:
         """Whether a saved session provably continued (in-process reload)."""
         if self.hass.state is not CoreState.running or stored.saved_at is None:
+            _LOGGER.debug(
+                "Room %s: cannot resume; HA state=%s saved_at=%s",
+                self.config.name,
+                self.hass.state,
+                stored.saved_at,
+            )
             return False
         if sorted(stored.contacts) != sorted(self.config.contacts):
+            _LOGGER.debug("Room %s: cannot resume; contacts changed", self.config.name)
             return False
         for entity_id in self.config.contacts:
             state = self.hass.states.get(entity_id)
             if state is None or state.last_changed > stored.saved_at:
+                _LOGGER.debug(
+                    "Room %s: cannot resume; contact=%s missing or changed since save",
+                    self.config.name,
+                    entity_id,
+                )
                 return False
         return True
 
@@ -229,6 +249,17 @@ class RoomRuntime:
         if self._stopped or self._started:
             return
         self._started = True
+        _LOGGER.debug(
+            "Room %s [%s]: activating; watched=%s outdoor_temperature=%s "
+            "outdoor_humidity=%s settings=%s sources=%s",
+            self.config.name,
+            self.config.room_id,
+            self.config.watched,
+            self.config.outdoor_temperature,
+            self.config.outdoor_humidity,
+            self.config.settings,
+            self.config.sources,
+        )
         if watched := self.config.watched:
             self._unsubs.append(
                 async_track_state_change_event(self.hass, watched, self._on_state)
@@ -246,6 +277,7 @@ class RoomRuntime:
     def async_stop(self) -> None:
         """Unsubscribe everything."""
         self._stopped = True
+        _LOGGER.debug("Room %s: stopping listeners and timers", self.config.name)
         self._pending_delivery = False
         for unsub in self._unsubs:
             unsub()
@@ -279,10 +311,24 @@ class RoomRuntime:
 
     @callback
     def _on_state(self, event: Event) -> None:
+        old, new = event.data.get("old_state"), event.data.get("new_state")
+        _LOGGER.debug(
+            "Room %s: entity event %s: %s -> %s",
+            self.config.name,
+            event.data.get("entity_id"),
+            old.state if old else None,
+            new.state if new else None,
+        )
         self.async_evaluate()
 
     @callback
     def _on_timer(self, _now: datetime) -> None:
+        _LOGGER.debug(
+            "Room %s: timer wakeup at %s; scheduled_deadline=%s",
+            self.config.name,
+            _now,
+            self.next_wakeup,
+        )
         self._timer = None
         self.async_evaluate()
 
@@ -293,9 +339,17 @@ class RoomRuntime:
             return
         now = dt_util.utcnow()
         try:
-            self.evaluation = evaluate(
-                self.state, self._inputs(), self.config.settings, now
-            )
+            inputs = self._inputs()
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                _LOGGER.debug(
+                    "Room %s: evaluating at %s; inputs=%s",
+                    self.config.name,
+                    now,
+                    asdict(inputs),
+                )
+            self.evaluation = evaluate(self.state, inputs, self.config.settings, now)
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                self._log_evaluation()
             self.faults.pop("evaluation", None)
         except Exception as err:
             _LOGGER.exception("Evaluation of room %s failed", self.config.name)
@@ -304,6 +358,34 @@ class RoomRuntime:
         self.advisor.async_schedule_save()
         self._update_issues()
         self._schedule_delivery()
+
+    def _log_evaluation(self) -> None:
+        ev = self.evaluation
+        assert ev is not None
+        _LOGGER.debug(
+            "Room %s: window raw=%s confirmed=%s raw_since=%s "
+            "open_debounce_s=%s close_debounce_s=%s session=%s",
+            self.config.name,
+            self.state.raw_window,
+            ev.window,
+            self.state.raw_since,
+            self.config.settings["window_open_debounce"],
+            self.config.settings["window_close_debounce"],
+            asdict(self.state.session) if self.state.session else None,
+        )
+        _LOGGER.debug(
+            "Room %s: evaluation=%s",
+            self.config.name,
+            asdict(ev),
+        )
+        for reason, status in ev.scenarios.items():
+            _LOGGER.debug(
+                "Room %s: scenario=%s status=%s latch=%s",
+                self.config.name,
+                reason,
+                status,
+                asdict(self.state.latch(reason)),
+            )
 
     @callback
     def _schedule(self, *candidates: datetime | None) -> None:
@@ -318,6 +400,12 @@ class RoomRuntime:
             self._timer()
             self._timer = None
         self.next_wakeup = wakeup
+        _LOGGER.debug(
+            "Room %s: scheduling wakeup=%s from deadlines=%s",
+            self.config.name,
+            wakeup,
+            candidates,
+        )
         if wakeup is not None:
             self._timer = async_track_point_in_utc_time(
                 self.hass, self._on_timer, wakeup
@@ -355,6 +443,9 @@ class RoomRuntime:
             for p in self.evaluation.problems
         }
         for issue_id in self._issues - set(current):
+            _LOGGER.debug(
+                "Room %s: input recovered; issue=%s", self.config.name, issue_id
+            )
             ir.async_delete_issue(self.hass, DOMAIN, issue_id)
         for issue_id, p in current.items():
             if issue_id not in self._issues:
@@ -387,6 +478,9 @@ class RoomRuntime:
         nid = problem_notification_id(self.config.room_id)
         if not problems or not settings["persistent_notifications_enabled"]:
             if self._problem_displayed:
+                _LOGGER.debug(
+                    "Room %s: clearing input problem notification", self.config.name
+                )
                 persistent_notification.async_dismiss(self.hass, nid)
                 self._problem_displayed = False
                 self._problem_content = None
@@ -400,6 +494,11 @@ class RoomRuntime:
         )
         content = f"{title}\n{body}"
         if content != self._problem_content:
+            _LOGGER.debug(
+                "Room %s: updating input problem notification; problems=%s",
+                self.config.name,
+                len(problems),
+            )
             persistent_notification.async_create(self.hass, body, title, nid)
             self._problem_displayed = True
             self._problem_content = content
@@ -419,11 +518,22 @@ class RoomRuntime:
         """Return the message that should currently be displayed."""
         ev = self.evaluation
         settings = self.config.settings
-        if (
-            ev is None
-            or not settings["notifications_enabled"]
-            or ev.recommendation not in ACTIONABLE
-        ):
+        if ev is None:
+            _LOGGER.debug(
+                "Room %s: no message; evaluation unavailable", self.config.name
+            )
+            return None
+        if not settings["notifications_enabled"]:
+            _LOGGER.debug(
+                "Room %s: no message; notifications disabled", self.config.name
+            )
+            return None
+        if ev.recommendation not in ACTIONABLE:
+            _LOGGER.debug(
+                "Room %s: no message; recommendation=%s is not actionable",
+                self.config.name,
+                ev.recommendation,
+            )
             return None
         permitted = [
             reason
@@ -496,6 +606,21 @@ class RoomRuntime:
         ctx, boundary = self._context(now)
         desired = self.desired_message(quiet=ctx.quiet)
         configured = self.targets()
+        _LOGGER.debug(
+            "Room %s: delivery context; targets=%s desired=%s quiet=%s "
+            "quiet_exempt=%s quiet_boundary=%s reminder_interval_s=%s",
+            self.config.name,
+            configured,
+            desired.fingerprint if desired else None,
+            ctx.quiet,
+            desired.quiet_exempt if desired else None,
+            boundary,
+            desired.reminder_interval_s if desired else None,
+        )
+        if not configured:
+            _LOGGER.debug(
+                "Room %s: no notification targets configured", self.config.name
+            )
         deadlines: list[datetime] = []
         for target in dict.fromkeys([*configured, *self.delivery]):
             if self._stopped:
@@ -504,6 +629,19 @@ class RoomRuntime:
             wanted = desired if target in configured else None
             decision = decide(
                 state, wanted, ctx, persistent=target == PERSISTENT_TARGET
+            )
+            _LOGGER.debug(
+                "Room %s: target=%s configured=%s displayed=%s decision=%s "
+                "action=%s deadline=%s failures=%s retry_at=%s",
+                self.config.name,
+                target,
+                target in configured,
+                state.displayed,
+                decision.reason,
+                decision.action.type if decision.action else None,
+                decision.deadline,
+                state.failures,
+                state.retry_at,
             )
             if decision.deadline is not None:
                 deadlines.append(decision.deadline)
@@ -530,6 +668,13 @@ class RoomRuntime:
     ) -> datetime | None:
         nid = notification_id(self.config.room_id)
         message = action.message
+        _LOGGER.debug(
+            "Room %s: executing %s for target=%s notification_id=%s",
+            self.config.name,
+            action.type,
+            target,
+            nid,
+        )
         try:
             if target == PERSISTENT_TARGET:
                 if message is None:
@@ -569,8 +714,22 @@ class RoomRuntime:
                 "Room %s: delivery to %s failed: %s", self.config.name, target, err
             )
             record_failure(state, action, now, repr(err))
+            _LOGGER.debug(
+                "Room %s: target=%s delivery failed; failures=%s retry_at=%s exhausted=%s",
+                self.config.name,
+                target,
+                state.failures,
+                state.retry_at,
+                state.retry_at is None,
+            )
             return state.retry_at
         record_success(state, action, now)
+        _LOGGER.debug(
+            "Room %s: target=%s action=%s succeeded",
+            self.config.name,
+            target,
+            action.type,
+        )
         return None
 
     def _update_delivery_faults(self) -> None:

@@ -163,6 +163,7 @@ class Decision:
 
     action: Action | None = None
     deadline: datetime | None = None
+    reason: str = "unchanged"
 
 
 def _content(message: Message) -> str:
@@ -177,13 +178,14 @@ def decide(
     persistent: bool,
 ) -> Decision:
     """Decide the next action for one target. May update ``state`` silently."""
-    action, deadline = _decide(state, desired, ctx, persistent)
+    decision = _decide(state, desired, ctx, persistent)
+    action, deadline = decision.action, decision.deadline
     if action is not None and action.key == state.failed_key:
         if state.retry_at is None:
-            return Decision(None, deadline)  # retry budget exhausted
+            return Decision(None, deadline, "retry_budget_exhausted")
         if ctx.now < state.retry_at:
-            return Decision(None, _earliest(deadline, state.retry_at))
-    return Decision(action, deadline)
+            return Decision(None, _earliest(deadline, state.retry_at), "retry_backoff")
+    return decision
 
 
 def _earliest(a: datetime | None, b: datetime | None) -> datetime | None:
@@ -199,12 +201,12 @@ def _decide(
     desired: Message | None,
     ctx: Context,
     persistent: bool,
-) -> tuple[Action | None, datetime | None]:
+) -> Decision:
     if desired is None:
         if state.displayed:
-            return Action(ActionType.CLEAR), None
+            return Decision(Action(ActionType.CLEAR), reason="no_desired_message")
         state.major = state.fingerprint = state.presentation = None
-        return None, None
+        return Decision(reason="no_desired_message")
 
     major_changed = state.major != desired.major
     reason_changed = state.fingerprint != desired.fingerprint
@@ -215,36 +217,47 @@ def _decide(
         if state.displayed and (major_changed or (reason_changed and sends_on_reason)):
             # The displayed message became misleading: clear it now and let
             # quiet-end handling deliver the current advice.
-            return Action(ActionType.CLEAR), None
+            return Decision(Action(ActionType.CLEAR), reason="quiet_hours_clear")
         if state.displayed and reason_changed:
             state.fingerprint = desired.fingerprint
-        return None, ctx.quiet_end_at
+        return Decision(deadline=ctx.quiet_end_at, reason="quiet_hours")
 
     if not state.displayed or major_changed or presentation_changed:
-        return Action(ActionType.SEND, desired), None
+        return Decision(Action(ActionType.SEND, desired), reason="new_message")
     if reason_changed:
         if sends_on_reason:
-            return Action(ActionType.SEND, desired), None
+            return Decision(Action(ActionType.SEND, desired), reason="reasons_changed")
         state.fingerprint = desired.fingerprint
 
     deadline: datetime | None = None
+    reason = (
+        "reason_update_disabled"
+        if reason_changed and not sends_on_reason
+        else "unchanged_reminders_disabled"
+        if desired.reminder_interval_s is None
+        else "unchanged"
+    )
     if desired.reminder_interval_s is not None and state.last_semantic_at:
         base = state.last_semantic_at
         if not desired.quiet_exempt and ctx.last_quiet_end is not None:
             base = max(base, ctx.last_quiet_end)
         due = base + timedelta(seconds=desired.reminder_interval_s)
         if ctx.now >= due:
-            return Action(ActionType.REMINDER, desired), None
+            return Decision(Action(ActionType.REMINDER, desired), reason="reminder_due")
         deadline = due
+        reason = "waiting_for_reminder"
 
     if persistent and state.content != _content(desired):
         refresh_at = (state.last_refresh_at or ctx.now) + timedelta(
             seconds=CONTENT_REFRESH_MIN_S
         )
         if state.last_refresh_at is None or ctx.now >= refresh_at:
-            return Action(ActionType.REFRESH, desired), deadline
+            return Decision(
+                Action(ActionType.REFRESH, desired), deadline, "content_refresh"
+            )
         deadline = _earliest(deadline, refresh_at)
-    return None, deadline
+        reason = "waiting_for_content_refresh"
+    return Decision(deadline=deadline, reason=reason)
 
 
 def record_success(state: TargetState, action: Action, now: datetime) -> None:

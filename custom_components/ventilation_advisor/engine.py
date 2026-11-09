@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 import uuid
 from collections.abc import Mapping
@@ -30,6 +31,7 @@ from .physics import (
 )
 
 PARTICIPATION_LOOKBACK = timedelta(minutes=15)
+_LOGGER = logging.getLogger(__name__)
 OPEN_SCENARIOS = {
     Reason.DRYING_POSSIBLE: ("humidity", -1),
     Reason.COOLING_POSSIBLE: ("temperature", -1),
@@ -574,10 +576,29 @@ def _start_session(ctx: _Ctx, opened_at: datetime) -> None:
     ctx.state.pending_open_reasons.clear()
     ctx.state.session = session
     ctx.started_session = True
+    _LOGGER.debug(
+        "Opening session=%s started; opened_at=%s confirmed_at=%s "
+        "recommended_duration_s=%s maximum_duration_s=%s participating_goals=%s",
+        session.id,
+        opened_at,
+        ctx.now,
+        recommended,
+        session.maximum_duration_s,
+        list(session.reasons),
+    )
 
 
 def _end_session(ctx: _Ctx, session: Session, end: datetime) -> None:
-    if end >= session.opened_at + timedelta(seconds=session.recommended_duration_s):
+    qualified = end >= session.opened_at + timedelta(
+        seconds=session.recommended_duration_s
+    )
+    _LOGGER.debug(
+        "Opening session=%s ended at %s; qualifies_as_airing=%s",
+        session.id,
+        end,
+        qualified,
+    )
+    if qualified:
         ctx.state.last_airing_at = _later(ctx.state.last_airing_at, end)
         latch = ctx.state.overdue_airing
         latch.reset()
@@ -731,6 +752,19 @@ def _open_scenario(
             resolution = f"{reason}_no_longer_helpful"
         if latch.active or starts:
             latch.sample = _sample(ctx)
+    _LOGGER.debug(
+        "Opening scenario=%s: quantity=%s values=%s zone=%s "
+        "window=%s starts=%s resolution=%s condition_delay_min=%s goal_delay_min=%s",
+        reason,
+        quantity,
+        data,
+        getattr(ctx.state, f"{quantity}_zone"),
+        window,
+        starts,
+        resolution,
+        ctx.s["condition_delay"],
+        ctx.s["goal_reached_delay"],
+    )
     return _update_latch(
         ctx,
         reason,
@@ -782,6 +816,14 @@ def _overdue_airing(ctx: _Ctx, window: WindowState) -> tuple[ScenarioStatus, dat
     aired = session is not None and _opening_end(ctx) >= session.opened_at + timedelta(
         seconds=session.recommended_duration_s
     )
+    _LOGGER.debug(
+        "Overdue airing: baseline=%s due=%s now=%s window=%s aired=%s",
+        baseline,
+        due,
+        ctx.now,
+        window,
+        aired,
+    )
     if session is not None and not aired:
         ctx.deadline(
             session.opened_at + timedelta(seconds=session.recommended_duration_s)
@@ -808,26 +850,60 @@ def _protection(
 ) -> ScenarioStatus:
     latch = ctx.state.latch(reason)
     if not _enabled(ctx, reason):
+        _LOGGER.debug("Safeguard %s: disabled", reason)
         latch.reset()
         return ScenarioStatus.DISABLED
     if not _configured(ctx, quantity):
+        _LOGGER.debug("Safeguard %s: required inputs not configured", reason)
         latch.reset()
         return ScenarioStatus.NOT_CONFIGURED
     session = ctx.state.session
     if session is None:
+        _LOGGER.debug("Safeguard %s: no confirmed opening session", reason)
         latch.reset()
         return ScenarioStatus.INACTIVE
     maximum_at = session.opened_at + timedelta(seconds=session.maximum_duration_s)
     ctx.deadline(maximum_at + timedelta(microseconds=1))
     data = _quantity(ctx, quantity)
     if data is None:
+        _LOGGER.debug(
+            "Safeguard %s session=%s: invalid readings; evaluation frozen",
+            reason,
+            session.id,
+        )
         return ScenarioStatus.UNKNOWN
     if _opening_end(ctx) <= maximum_at:
+        _LOGGER.debug(
+            "Safeguard %s session=%s: maximum airing time not exceeded; "
+            "opening_end=%s maximum_at=%s",
+            reason,
+            session.id,
+            _opening_end(ctx),
+            maximum_at,
+        )
         latch.reset()
         return ScenarioStatus.INACTIVE
     indoor, outdoor, lower, upper, margin, minimum = data
     bound = lower if direction < 0 else upper
-    if adverse_effect(indoor, outdoor, bound, direction, margin, minimum, latch.active):
+    adverse = adverse_effect(
+        indoor, outdoor, bound, direction, margin, minimum, latch.active
+    )
+    _LOGGER.debug(
+        "Safeguard %s session=%s: adverse_effect=%s quantity=%s indoor=%s outdoor=%s "
+        "bound=%s direction=%s margin=%s minimum_difference=%s previously_active=%s",
+        reason,
+        session.id,
+        adverse,
+        quantity,
+        indoor,
+        outdoor,
+        bound,
+        direction,
+        margin,
+        minimum,
+        latch.active,
+    )
+    if adverse:
         latch.state, latch.last_active_at, latch.sample = (
             "active",
             ctx.now,

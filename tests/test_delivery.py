@@ -76,6 +76,63 @@ def test_send_once_then_nothing_then_clear() -> None:
     assert run(state, None, Context(m(3))) is None
 
 
+def test_decision_reasons_explain_suppression_and_scheduling() -> None:
+    state = TargetState()
+    desired = msg()
+    assert (
+        decide(state, None, Context(T0), persistent=False).reason
+        == "no_desired_message"
+    )
+    decision = decide(state, desired, Context(T0), persistent=False)
+    assert decision.reason == "new_message"
+    record_success(state, decision.action, T0)
+    assert (
+        decide(state, desired, Context(m(1)), persistent=False).reason
+        == "waiting_for_reminder"
+    )
+    assert (
+        decide(state, desired, Context(m(31)), persistent=False).reason
+        == "reminder_due"
+    )
+    assert (
+        decide(state, msg(interval=None), Context(m(1)), persistent=False).reason
+        == "unchanged_reminders_disabled"
+    )
+    assert (
+        decide(
+            state,
+            msg(fp="changed", interval=None),
+            Context(m(1), update_on_reason_change=False),
+            persistent=False,
+        ).reason
+        == "reason_update_disabled"
+    )
+
+    ctx = Context(m(2), quiet=True, quiet_end_at=m(60))
+    decision = decide(state, desired, ctx, persistent=False)
+    assert decision.reason == "quiet_hours_clear"
+    record_success(state, decision.action, m(2))
+    decision = decide(state, desired, ctx, persistent=False)
+    assert decision.reason == "quiet_hours"
+    assert decision.deadline == m(60)
+
+
+def test_decision_reasons_explain_retry_budget() -> None:
+    state = TargetState()
+    desired = msg()
+    action = decide(state, desired, Context(T0), persistent=False).action
+    assert action is not None
+    record_failure(state, action, T0, "test failure")
+    decision = decide(state, desired, Context(T0), persistent=False)
+    assert decision.reason == "retry_backoff"
+    assert decision.action is None
+    assert decision.deadline == state.retry_at
+    state.retry_at = None
+    decision = decide(state, desired, Context(T0), persistent=False)
+    assert decision.reason == "retry_budget_exhausted"
+    assert decision.action is None
+
+
 def test_kind_change_sends() -> None:
     state = TargetState()
     run(state, msg("open"), Context(T0))

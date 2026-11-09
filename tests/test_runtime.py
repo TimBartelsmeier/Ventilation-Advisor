@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import timedelta
 
 import pytest
@@ -27,6 +28,7 @@ from .conftest import (
 
 WINDOW = "binary_sensor.bedroom_window"
 TAG = notification_id("room1")
+LOG_NAMESPACE = f"custom_components.{DOMAIN}"
 
 
 def humid_room(hass: HomeAssistant) -> None:
@@ -58,6 +60,164 @@ def persistent(hass: HomeAssistant) -> dict | None:
     )
 
     return _async_get_or_create_notifications(hass).get(TAG)
+
+
+async def test_debug_logs_trace_window_safeguard_and_delivery(
+    hass: HomeAssistant,
+    clock: Clock,
+    notify: NotifyRecorder,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG, logger=LOG_NAMESPACE)
+    humid_room(hass)
+    await setup_entry(
+        hass,
+        options=global_options(
+            notify_actions=["notify.phone"],
+            window_open_debounce=10,
+            reference_airing_time=1,
+            airing_time_lower_limit=1,
+            airing_time_upper_limit=1,
+        ),
+        rooms=[room_data(indoor_humidity_entity=None)],
+    )
+    assert "activating; watched=" in caplog.text
+    caplog.clear()
+    set_state(hass, WINDOW, "on")
+    await settle(hass)
+    assert f"entity event {WINDOW}: off -> on" in caplog.text
+    assert "window raw=open confirmed=closed" in caplog.text
+    assert "open_debounce_s=10" in caplog.text
+    assert "scheduling wakeup=" in caplog.text
+    assert "no message; recommendation=none is not actionable" in caplog.text
+
+    await clock.advance(11)
+    assert "timer wakeup" in caplog.text
+    assert "window raw=open confirmed=open" in caplog.text
+    assert "maximum airing time not exceeded" in caplog.text
+    await clock.advance(90)
+    assert "Safeguard heat_loss" in caplog.text
+    assert "adverse_effect=False quantity=temperature" in caplog.text
+    assert "bound=19" in caplog.text
+    assert notify.for_service("phone") == []
+
+    set_state(hass, "sensor.bedroom_temperature", "19", {"unit_of_measurement": "°C"})
+    await settle(hass)
+    assert "adverse_effect=True quantity=temperature" in caplog.text
+    assert "scenario=heat_loss status=active" in caplog.text
+    assert "target=notify.phone" in caplog.text
+    assert "decision=new_message action=send" in caplog.text
+    assert "action=send succeeded" in caplog.text
+    calls = notify.for_service("phone")
+    assert len(calls) == 1
+    assert calls[0]["message"] not in caplog.text
+    assert calls[0]["title"] not in caplog.text
+    set_state(hass, WINDOW, "off")
+    await clock.advance(31)
+    assert "window raw=closed confirmed=closed" in caplog.text
+    assert "action=clear succeeded" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        ({"notifications_enabled": False}, "no message; notifications disabled"),
+        (
+            {"persistent_notifications_enabled": False},
+            "no notification targets configured",
+        ),
+        (
+            {
+                "quiet_hours_enabled": True,
+                "quiet_hours_start": "00:00",
+                "quiet_hours_end": "23:59",
+            },
+            "decision=quiet_hours action=None",
+        ),
+    ],
+)
+async def test_debug_logs_explain_delivery_suppression(
+    hass: HomeAssistant,
+    clock: Clock,
+    caplog: pytest.LogCaptureFixture,
+    options: dict,
+    expected: str,
+) -> None:
+    caplog.set_level(logging.DEBUG, logger=LOG_NAMESPACE)
+    humid_room(hass)
+    await setup_entry(hass, options=global_options(**options))
+    await clock.advance(timedelta(minutes=5, seconds=1))
+    assert expected in caplog.text
+    assert persistent(hass) is None
+
+
+async def test_debug_logs_invalid_reading_and_recovery(
+    hass: HomeAssistant,
+    clock: Clock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG, logger=LOG_NAMESPACE)
+    humid_room(hass)
+    await setup_entry(hass)
+    set_state(hass, "sensor.bedroom_humidity", "unavailable")
+    await settle(hass)
+    assert "scenario=drying_possible status=unknown" in caplog.text
+    assert "'pending_problems': [" in caplog.text
+    await clock.advance(timedelta(minutes=10, seconds=1))
+    set_state(hass, "sensor.bedroom_humidity", "50", {"unit_of_measurement": "%"})
+    await settle(hass)
+    assert "input recovered; issue=" in caplog.text
+
+
+async def test_debug_logs_retry_and_success(
+    hass: HomeAssistant,
+    clock: Clock,
+    notify: NotifyRecorder,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG, logger=LOG_NAMESPACE)
+    humid_room(hass)
+    notify.fail = True
+    await setup_entry(
+        hass,
+        options=global_options(
+            notify_actions=["notify.phone"],
+            persistent_notifications_enabled=False,
+        ),
+    )
+    await clock.advance(timedelta(minutes=5, seconds=1))
+    assert "delivery failed; failures=1 retry_at=" in caplog.text
+    assert "decision=retry_backoff action=None" in caplog.text
+    notify.fail = False
+    await clock.advance(31)
+    assert "target=notify.phone action=send succeeded" in caplog.text
+    assert len(notify.for_service("phone")) == 1
+
+
+async def test_debug_snapshots_are_not_built_when_disabled(
+    hass: HomeAssistant,
+    clock: Clock,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch,
+) -> None:
+    caplog.set_level(logging.INFO, logger=LOG_NAMESPACE)
+
+    def unexpected_snapshot(*args, **kwargs):
+        pytest.fail("Debug snapshot built while debug logging is disabled")
+
+    monkeypatch.setattr(
+        "custom_components.ventilation_advisor.runtime.asdict",
+        unexpected_snapshot,
+    )
+    humid_room(hass)
+    await setup_entry(hass)
+    await clock.advance(301)
+    assert recommendation(hass) == "open"
+    assert not [
+        record
+        for record in caplog.records
+        if record.name.startswith(LOG_NAMESPACE) and record.levelno == logging.DEBUG
+    ]
 
 
 async def test_no_entities_or_devices(hass: HomeAssistant, clock: Clock) -> None:
