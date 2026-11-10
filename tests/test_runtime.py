@@ -489,10 +489,10 @@ async def test_quiet_mixed_message_filters_reasons_and_reminders(
     assert quiet_message.quiet_exempt
     assert quiet_message.reminder_interval_s == 1800
     assert "drying_possible" not in quiet_message.fingerprint
-    assert "Drying target" not in quiet_message.body
+    assert "drying target" not in quiet_message.body
     assert len(room.evaluation.reasons) == 2
     day_message = room.desired_message()
-    assert "Drying target" in day_message.body
+    assert "drying target" in day_message.body
     assert day_message.reminder_interval_s == 300
     assert quiet_message.fingerprint != day_message.fingerprint
 
@@ -921,8 +921,9 @@ async def test_manual_opening_protections_have_grace_and_share_tag(
     calls = notify.for_service("phone")
     assert len(calls) == 1
     assert calls[0]["data"]["tag"] == TAG
-    assert calls[0]["title"] == "Bedroom: close the window"
-    assert "Maximum airing time" in calls[0]["message"]
+    assert calls[0]["title"].startswith("Bedroom is ")
+    assert "; close the window." in calls[0]["message"]
+    assert "Airing limit about" in calls[0]["message"]
     assert "?" not in calls[0]["message"]
     set_state(hass, WINDOW, "off")
     await clock.advance(31)
@@ -1060,10 +1061,12 @@ async def test_combined_goals_wait_and_send_one_completion_message(
     assert recommendation(hass) == "close"
     assert not room.faults
     message = notify.for_service("phone")[-1]
-    assert message["title"] == "Bedroom: you can close the window"
-    assert "• Cooling target reached." in message["message"]
-    assert "• Drying target reached." in message["message"]
-    assert "Maximum airing time" not in message["message"]
+    assert message["title"] == "Bedroom drying and cooling targets reached"
+    assert (
+        "Humidity and temperature are back in range; you can close the window."
+        in message["message"]
+    )
+    assert "Airing limit" not in message["message"]
 
 
 async def test_heating_setpoint_shifts_window_and_message_reference(

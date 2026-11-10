@@ -144,11 +144,10 @@ def test_placeholders_are_well_formed() -> None:
 
 
 def test_german_notification_strings_cover_english_base() -> None:
-    assert messages.STRINGS["de"].keys() == messages.STRINGS["en"].keys()
     assert messages.ROLE_LABELS["de"].keys() == messages.ROLE_LABELS["en"].keys()
-    for key, english in messages.STRINGS["en"].items():
-        german_placeholders = set(
-            re.findall(r"\{([a-z_]+)\}", messages.STRINGS["de"][key])
-        )
-        english_placeholders = set(re.findall(r"\{([a-z_]+)\}", english))
-        assert german_placeholders == english_placeholders, key
+    for table in (messages.STRINGS, messages.ADVICE):
+        assert table["de"].keys() == table["en"].keys()
+        for key, english in table["en"].items():
+            german_placeholders = set(re.findall(r"\{([a-z_]+)\}", table["de"][key]))
+            english_placeholders = set(re.findall(r"\{([a-z_]+)\}", english))
+            assert german_placeholders == english_placeholders, key

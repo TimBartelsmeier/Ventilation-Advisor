@@ -448,360 +448,442 @@ def _local(value: datetime) -> datetime:
     return value
 
 
-def test_render_open_with_preview() -> None:
+def _render(ev: Evaluation, *, language: str = "en", room: str = "Room"):
+    return messages.render(ev, room=room, language=language, to_local=_local)
+
+
+def test_render_single_open_with_preview_exactly() -> None:
     ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
     ev.values = {
         "indoor_temperature": 21,
         "indoor_humidity": 70,
         "outdoor_temperature": 8,
         "outdoor_humidity": 80,
-        "comfort_upper_humidity": 55,
-        "humidity_reference_temperature": 21,
     }
     ev.preview_duration_s = 720
-    ev.preview_outdoor = 8.0
-    title, body = messages.render(ev, room="Bathroom", language="en", to_local=_local)
-    assert title == "Bathroom: open the window"
-    assert "Indoors: 21.0 °C, 70.0 % RH" in body
-    assert "Outdoors: 8.0 °C, 80.0 % RH (" in body
-    assert "Opening a window might be beneficial to:\n• Reduce excess humidity." in body
-    assert "Recommended for full air exchange: 12 min" in body
-    assert "As of" not in body
+    assert _render(ev) == (
+        "Room is humid",
+        "Outdoor air can dry the room; open a window.\nFull air exchange: about 12 min.\n\n"
+        "Inside: 21 °C · 70% RH\nOutside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
 
 
-def test_render_drying_partial_reason_sample_uses_current_readings() -> None:
+def test_render_multiple_open_reasons_with_overdue_exactly() -> None:
     ev = _ev(
         Recommendation.OPEN,
         [
+            ReasonInfo(Reason.DRYING_POSSIBLE, "active"),
+            ReasonInfo(Reason.COOLING_POSSIBLE, "active"),
+            ReasonInfo(Reason.OVERDUE_AIRING, "active"),
+        ],
+    )
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    ev.preview_duration_s = 1350
+    assert _render(ev) == (
+        "Room is humid and hot",
+        "Outdoor air can dry and cool the room; open a window. Fresh air is also due.\n"
+        "Full air exchange: about 22 min.\n\nInside: 21 °C · 70% RH\n"
+        "Outside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
+
+
+def test_render_overdue_only_exactly() -> None:
+    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.OVERDUE_AIRING, "active")])
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    assert _render(ev) == (
+        "Room is due for airing",
+        "It is time for fresh air; open a window.\n\nInside: 21 °C · 70% RH\n"
+        "Outside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
+
+
+def test_render_single_goal_reached_exactly() -> None:
+    ev = _ev(
+        Recommendation.CLOSE,
+        [
             ReasonInfo(
-                Reason.DRYING_POSSIBLE,
-                "active",
-                sample={"indoor_absolute_humidity": 14.1},
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
             )
         ],
     )
     ev.values = {
         "indoor_temperature": 21,
-        "indoor_humidity": 75,
-        "outdoor_temperature": 0,
-        "outdoor_humidity": 80,
-        "comfort_upper_humidity": 55,
-        "humidity_reference_temperature": 21,
-    }
-    _, body = messages.render(ev, room="Bedroom", language="en", to_local=_local)
-    assert body.splitlines()[0] == "Indoors: 21.0 °C, 75.0 % RH"
-    assert "?" not in body
-
-
-def test_render_close_heat_loss() -> None:
-    ev = _ev(Recommendation.CLOSE, [ReasonInfo(Reason.HEAT_LOSS, "active")])
-    ev.maximum_duration_s = 300
-    ev.open_for_s = 360
-    ev.values = {
-        "indoor_temperature": 19.3,
-        "outdoor_temperature": -3,
-        "comfort_lower_temperature": 19,
-    }
-    title, body = messages.render(ev, room="Office", language="en", to_local=_local)
-    assert title == "Office: close the window"
-    assert "Window open: 6 min · Maximum airing time: 5 min" in body
-    assert (
-        "Window should be closed:\n• Further airing risks cooling below your comfort range."
-        in body
-    )
-    assert messages.reminder_title("x", "en") == "Reminder: x"
-
-
-def test_render_fractional_airing_time() -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.OVERDUE_AIRING, "active")])
-    ev.preview_duration_s = 22.5 * 60
-    _, body = messages.render(ev, room="Study", language="en", to_local=_local)
-    assert "Recommended for full air exchange: 22.5 min" in body
-
-
-def test_render_german_notification() -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
-    ev.values = {
-        "indoor_temperature": 21,
         "indoor_humidity": 70,
-        "outdoor_temperature": 0,
+        "outdoor_temperature": 8,
         "outdoor_humidity": 80,
     }
-    ev.preview_duration_s = 22.5 * 60
-    title, body = messages.render(ev, room="Bad", language="de", to_local=_local)
-    assert title == "Bad: Fenster öffnen"
-    assert "Innen: 21,0 °C, 70,0 % rF" in body
-    assert "Außen: 0,0 °C, 80,0 % rF (21,2 % bei Raumtemperatur)" in body
-    assert "Fenster öffnen könnte helfen bei:\n• Feuchtigkeit senken." in body
-    assert "Empfohlene Dauer für vollständigen Luftaustausch: 22,5 Min." in body
-
-
-def test_render_german_heating_and_problem_labels() -> None:
-    ev = _ev(Recommendation.CLOSE, [ReasonInfo(Reason.HEAT_LOSS, "active")])
-    ev.values = {
-        "indoor_temperature": 19,
-        "outdoor_temperature": 0,
-        "comfort_lower_temperature": 20,
-        "heating_setpoint": 20,
-    }
-    title, body = messages.render(ev, room="Büro", language="de", to_local=_local)
-    assert title == "Büro: Fenster schließen"
-    assert "Heizungs-Solltemperatur" in body
-    assert "Fenster sollte geschlossen werden:" in body
-    problem = messages.Problem(
-        "indoor_temperature",
-        "sensor.office_temperature",
-        "unavailable",
-        T0,
-    )
-    title, body = messages.render_problems(
-        [problem], room="Büro", language="de", to_local=_local, now=T0
-    )
-    assert title == "Büro: Problem mit Ventilation Advisor"
-    assert (
-        "Innentemperatur (sensor.office_temperature): unavailable seit 12:00." in body
+    assert _render(ev) == (
+        "Room drying target reached",
+        "Humidity is back in range; you can close the window.\n\nInside: 21 °C · 70% RH\n"
+        "Outside: 8 °C · 80% RH (36% RH @ 21 °C)",
     )
 
 
-def test_render_close_uses_current_conditions_not_old_resolution_sample() -> None:
+def test_render_multiple_goals_reached_exactly() -> None:
     ev = _ev(
         Recommendation.CLOSE,
         [
             ReasonInfo(
-                Reason.DRYING_POSSIBLE,
-                "resolved",
-                "drying_possible_target_reached",
-                {"indoor_temperature": 21.0},
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
+            ),
+            ReasonInfo(
+                Reason.COOLING_POSSIBLE, "resolved", "cooling_possible_target_reached"
             ),
         ],
     )
-    _, body = messages.render(ev, room="Bath", language="en", to_local=_local)
-    ev.values = {"indoor_temperature": 22, "outdoor_temperature": 18}
-    _, body = messages.render(ev, room="Bath", language="en", to_local=_local)
-    assert body.splitlines()[0] == "Indoors: 22.0 °C"
-    assert "Window may be closed again:\n• Drying target reached." in body
-    assert "aired" not in body
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    assert _render(ev) == (
+        "Room drying and cooling targets reached",
+        "Humidity and temperature are back in range; you can close the window.\n\n"
+        "Inside: 21 °C · 70% RH\nOutside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
 
 
 @pytest.mark.parametrize(
-    ("indoor", "setpoint", "indoor_line", "outdoor_line"),
+    ("reason", "title", "line"),
     [
         (
-            21,
-            None,
-            "Indoors: 21.0 °C, 70.0 % RH",
-            "Outdoors: 0.0 °C, 80.0 % RH (21.2 % at indoor temperature)",
+            "drying_possible",
+            "Room: outdoor air no longer helps drying",
+            "Outdoor air no longer dries the room; you can close the window.",
         ),
         (
-            17,
-            21,
-            "Indoors: 17.0 °C, 70.0 % RH (55.3 % at heating setpoint)",
-            "Outdoors: 0.0 °C, 80.0 % RH (21.2 % at heating setpoint)",
+            "cooling_possible",
+            "Room: outdoor air no longer helps cooling",
+            "Outdoor air no longer cools the room; you can close the window.",
         ),
         (
-            21,
-            19,
-            "Indoors: 21.0 °C, 70.0 % RH",
-            "Outdoors: 0.0 °C, 80.0 % RH (21.2 % at indoor temperature)",
+            "warming_possible",
+            "Room: outdoor air no longer helps warming",
+            "Outdoor air no longer warms the room; you can close the window.",
+        ),
+        (
+            "humidifying_possible",
+            "Room: outdoor air no longer helps humidifying",
+            "Outdoor air no longer humidifies the room; you can close the window.",
         ),
     ],
 )
-def test_humidity_reference_integrated_into_conditions(
-    indoor,
-    setpoint,
-    indoor_line,
-    outdoor_line,
+def test_render_no_longer_helpful_never_claims_goal_reached(
+    reason, title, line
 ) -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
-    ev.values = {
-        "indoor_temperature": indoor,
-        "indoor_humidity": 70,
-        "outdoor_temperature": 0,
-        "outdoor_humidity": 80,
-    }
-    if setpoint is not None:
-        ev.values["heating_setpoint"] = setpoint
-    title, body = messages.render(ev, room="Bath", language="en", to_local=_local)
-    assert body.splitlines()[:2] == [indoor_line, outdoor_line]
-    assert title not in body
-    assert body.count("Indoors:") == body.count("Outdoors:") == 1
-    assert "As of" not in body
+    ev = _ev(
+        Recommendation.CLOSE,
+        [ReasonInfo(reason, "resolved", f"{reason}_no_longer_helpful")],
+    )
+    assert _render(ev) == (
+        title,
+        f"{line}\n\nInside: unavailable\nOutside: unavailable",
+    )
+    assert "target reached" not in title and "back in range" not in line
 
 
-def test_equal_temperature_humidity_has_no_unnecessary_reference() -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo("humidifying_possible", "active")])
-    ev.values = {
-        "indoor_temperature": 21,
-        "indoor_humidity": 30,
-        "outdoor_temperature": 21,
-        "outdoor_humidity": 55,
-    }
-    _, body = messages.render(ev, room="Room", language="en", to_local=_local)
-    assert body.splitlines()[:2] == [
-        "Indoors: 21.0 °C, 30.0 % RH",
-        "Outdoors: 21.0 °C, 55.0 % RH",
-    ]
-    assert "(" not in body
-
-
-def test_temperature_only_message_omits_humidity_reference() -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo("warming_possible", "active")])
-    ev.values = {
-        "indoor_temperature": 17,
-        "indoor_humidity": 70,
-        "outdoor_temperature": 22,
-        "outdoor_humidity": 60,
-        "heating_setpoint": 21,
-        "comfort_lower_temperature": 21,
-    }
-    _, body = messages.render(ev, room="Room", language="en", to_local=_local)
-    assert body.splitlines()[:2] == [
-        "Indoors: 17.0 °C, 70.0 % RH",
-        "Outdoors: 22.0 °C, 60.0 % RH",
-    ]
-    assert "• Warm the room toward your heating setpoint." in body
-    assert "at heating setpoint)" not in body
-
-
-def test_retained_conditions_during_sensor_outage() -> None:
+def test_render_mixed_goal_unhelpful_and_aired_resolutions_exactly() -> None:
     ev = _ev(
         Recommendation.CLOSE,
         [
             ReasonInfo(
-                "heat_loss",
-                "active",
-                sample={
-                    "indoor_temperature": 19,
-                    "outdoor_temperature": 0,
-                    "comfort_lower_temperature": 19,
-                },
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
             ),
+            ReasonInfo(
+                Reason.COOLING_POSSIBLE,
+                "resolved",
+                "cooling_possible_no_longer_helpful",
+            ),
+            ReasonInfo(Reason.OVERDUE_AIRING, "resolved", "aired"),
         ],
     )
-    ev.values = {"indoor_temperature": 19.5}
-    ev.maximum_duration_s, ev.open_for_s = 600, 660
-    _, body = messages.render(ev, room="Room", language="en", to_local=_local)
-    assert body.splitlines()[:2] == ["Indoors: 19.5 °C", "Outdoors: 0.0 °C"]
-    assert "?" not in body
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    assert _render(ev) == (
+        "Room drying target reached",
+        "Humidity is back in range.\nOutdoor air no longer cools the room.\n"
+        "The recommended fresh-air duration has been reached; you can close the window.\n\n"
+        "Inside: 21 °C · 70% RH\nOutside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
 
 
-def test_releasing_keeps_open_fingerprint_and_does_not_resend() -> None:
-    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
-    original = fingerprint(ev)
-    state = TargetState()
-    initial = msg()
-    initial.fingerprint = original
-    assert run(state, initial, Context(T0)) is ActionType.SEND
-    ev.reasons[0].status = "releasing"
-    assert fingerprint(ev) == original
-    releasing = msg()
-    releasing.fingerprint = fingerprint(ev)
-    assert run(state, releasing, Context(m(1))) is None
+@pytest.mark.parametrize(
+    ("reason", "indoor", "lower", "title", "body"),
+    [
+        (
+            Reason.HEAT_LOSS,
+            19.5,
+            True,
+            "Room is getting cold",
+            "Further airing risks cooling below your comfort range; close the window.",
+        ),
+        (
+            Reason.HEAT_LOSS,
+            18,
+            True,
+            "Room is cold",
+            "Outdoor air cools the room further; close the window.",
+        ),
+        (
+            Reason.HEAT_GAIN,
+            23.5,
+            False,
+            "Room is getting hot",
+            "Further airing risks warming above your comfort range; close the window.",
+        ),
+        (
+            Reason.HEAT_GAIN,
+            25,
+            False,
+            "Room is hot",
+            "Outdoor air warms the room further; close the window.",
+        ),
+    ],
+)
+def test_render_heat_safeguard_near_and_beyond_exactly(
+    reason, indoor, lower, title, body
+) -> None:
+    ev = _ev(Recommendation.CLOSE, [ReasonInfo(reason, "active")])
+    bound = "comfort_lower_temperature" if lower else "comfort_upper_temperature"
+    ev.values = {
+        "indoor_temperature": indoor,
+        "outdoor_temperature": 5,
+        bound: 19 if lower else 24,
+    }
+    ev.open_for_s, ev.maximum_duration_s = 360, 600
+    assert _render(ev) == (
+        title,
+        f"{body}\nOpen for 6 min · Airing limit about 10 min.\n\nInside: {indoor:g} °C\nOutside: 5 °C",
+    )
 
 
-def test_render_combined_close_advice_lists_overdue_resolution() -> None:
+def test_render_safeguard_with_resolved_goal_exactly() -> None:
     ev = _ev(
         Recommendation.CLOSE,
         [
             ReasonInfo(Reason.HEAT_LOSS, "active"),
-            ReasonInfo(Reason.OVERDUE_AIRING, "resolved", "aired"),
             ReasonInfo(
-                Reason.COOLING_POSSIBLE,
-                "resolved",
-                "cooling_possible_target_reached",
-                {"indoor_temperature": 23.0},
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
             ),
         ],
     )
-    ev.recommended_duration_s = 300
-    ev.maximum_duration_s = 600
-    ev.open_for_s = 660
     ev.values = {
-        "indoor_temperature": 19.3,
+        "indoor_temperature": 19.5,
+        "indoor_humidity": 60,
         "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
         "comfort_lower_temperature": 19,
     }
-    title, body = messages.render(ev, room="Office", language="en", to_local=_local)
-    assert title == "Office: close the window"
-    assert body == (
-        "Indoors: 19.3 °C\n"
-        "Outdoors: 0.0 °C\n\n"
-        "Window should be closed:\n"
-        "• Further airing risks cooling below your comfort range.\n"
-        "• Recommended fresh-air airing completed.\n"
-        "• Cooling target reached.\n\n"
-        "Window open: 11 min · Maximum airing time: 10 min"
+    ev.open_for_s, ev.maximum_duration_s = 360, 600
+    assert _render(ev) == (
+        "Room is getting cold",
+        "Further airing risks cooling below your comfort range; close the window.\n"
+        "The drying target has also been reached.\nOpen for 6 min · Airing limit about 10 min.\n\n"
+        "Inside: 19.5 °C · 60% RH\nOutside: 0 °C · 80% RH (23% RH @ 19.5 °C)",
     )
 
 
-@pytest.mark.parametrize(
-    "reason",
-    [
-        "warming_possible",
-        "cooling_possible",
-        "drying_possible",
-        "humidifying_possible",
-        "heat_loss",
-        "heat_gain",
-        "moisture_loss",
-        "moisture_gain",
-    ],
-)
-def test_all_comfort_messages_render_numeric_context(reason: str) -> None:
-    protective = reason in ("heat_loss", "heat_gain", "moisture_loss", "moisture_gain")
-    ev = _ev(
-        Recommendation.CLOSE if protective else Recommendation.OPEN,
-        [ReasonInfo(reason, "active")],
-    )
-    ev.values = {
-        "indoor_temperature": 21,
-        "outdoor_temperature": 5,
-        "comfort_lower_temperature": 21,
-        "comfort_upper_temperature": 23,
-        "comfort_lower_humidity": 40,
-        "comfort_upper_humidity": 55,
-        "humidity_reference_temperature": 21,
-        "indoor_reference_humidity": 60,
-        "outdoor_reference_humidity": 25,
-        "heating_setpoint": 21,
-    }
-    ev.maximum_duration_s = 720
-    ev.open_for_s = 900
-    title, body = messages.render(ev, room="Room", language="en", to_local=_local)
-    assert "?" not in body
-    assert title == (
-        "Room: close the window" if protective else "Room: open the window"
-    )
-    if reason in ("warming_possible", "heat_loss"):
-        assert "heating setpoint" in body
-
-
-@pytest.mark.parametrize(
-    "reason",
-    [
-        "warming_possible",
-        "cooling_possible",
-        "drying_possible",
-        "humidifying_possible",
-    ],
-)
-@pytest.mark.parametrize("suffix", ["target_reached", "no_longer_helpful"])
-def test_all_goal_completion_messages(reason: str, suffix: str) -> None:
+def test_render_multiple_safeguards_with_resolved_goal_exactly() -> None:
     ev = _ev(
         Recommendation.CLOSE,
         [
+            ReasonInfo(Reason.HEAT_LOSS, "active"),
+            ReasonInfo(Reason.HEAT_GAIN, "active"),
             ReasonInfo(
-                reason,
-                "resolved",
-                f"{reason}_{suffix}",
-                {
-                    "indoor_temperature": 21,
-                    "outdoor_temperature": 21,
-                    "humidity_reference_temperature": 21,
-                },
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
+            ),
+        ],
+    )
+    ev.values = {
+        "indoor_temperature": 19,
+        "indoor_humidity": 30,
+        "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
+        "comfort_lower_temperature": 20,
+        "comfort_upper_temperature": 23,
+        "comfort_lower_humidity": 40,
+    }
+    ev.open_for_s, ev.maximum_duration_s = 120, 600
+    assert _render(ev) == (
+        "Room is cold and getting hot",
+        "Avoid further cooling and warming; close the window.\n"
+        "The drying target has also been reached.\nOpen for 2 min · Airing limit about 10 min.\n\n"
+        "Inside: 19 °C · 30% RH\nOutside: 0 °C · 80% RH (24% RH @ 19 °C)",
+    )
+
+
+def test_render_heating_setpoint_relevant_and_irrelevant_exactly() -> None:
+    relevant = _ev(Recommendation.OPEN, [ReasonInfo(Reason.WARMING_POSSIBLE, "active")])
+    relevant.values = {
+        "indoor_temperature": 17,
+        "indoor_humidity": 50,
+        "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
+        "heating_setpoint": 21,
+        "comfort_lower_temperature": 21,
+    }
+    assert _render(relevant) == (
+        "Room is cold",
+        "Outdoor air can warm the room; open a window.\n\n"
+        "Inside: 17 °C · 50% RH (heating setpoint 21 °C)\n"
+        "Outside: 0 °C · 80% RH (21% RH @ 21 °C)",
+    )
+    irrelevant = _ev(
+        Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")]
+    )
+    irrelevant.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
+        "heating_setpoint": 19,
+        "comfort_lower_temperature": 18,
+    }
+    assert _render(irrelevant) == (
+        "Room is humid",
+        "Outdoor air can dry the room; open a window.\n\nInside: 21 °C · 70% RH\n"
+        "Outside: 0 °C · 80% RH (21% RH @ 21 °C)",
+    )
+
+
+def test_outdoor_equivalent_humidity_is_shown_for_thermal_only_advice() -> None:
+    ev = _ev(Recommendation.CLOSE, [ReasonInfo(Reason.HEAT_LOSS, "active")])
+    ev.values = {
+        "indoor_temperature": 19,
+        "indoor_humidity": 60,
+        "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
+        "comfort_lower_temperature": 18,
+    }
+    ev.open_for_s, ev.maximum_duration_s = 60, 120
+    assert _render(ev) == (
+        "Room is getting cold",
+        "Further airing risks cooling below your comfort range; close the window.\n"
+        "Open for 1 min · Airing limit about 2 min.\n\nInside: 19 °C · 60% RH\n"
+        "Outside: 0 °C · 80% RH (24% RH @ 19 °C)",
+    )
+
+
+def test_outdoor_equivalent_humidity_is_shown_for_overdue_advice() -> None:
+    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.OVERDUE_AIRING, "active")])
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 50,
+        "outdoor_temperature": 0,
+        "outdoor_humidity": 80,
+    }
+    assert _render(ev) == (
+        "Room is due for airing",
+        "It is time for fresh air; open a window.\n\nInside: 21 °C · 50% RH\n"
+        "Outside: 0 °C · 80% RH (21% RH @ 21 °C)",
+    )
+
+
+def test_outdoor_equivalent_humidity_is_shown_at_equal_temperatures() -> None:
+    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.OVERDUE_AIRING, "active")])
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 50,
+        "outdoor_temperature": 21,
+        "outdoor_humidity": 55,
+    }
+    assert _render(ev) == (
+        "Room is due for airing",
+        "It is time for fresh air; open a window.\n\nInside: 21 °C · 50% RH\n"
+        "Outside: 21 °C · 55% RH (55% RH @ 21 °C)",
+    )
+
+
+def test_render_missing_and_partial_readings_exactly() -> None:
+    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
+    assert _render(ev) == (
+        "Room is humid",
+        "Outdoor air can dry the room; open a window.\n\nInside: unavailable\nOutside: unavailable",
+    )
+    ev.values = {"indoor_temperature": 21, "outdoor_humidity": 80}
+    assert _render(ev) == (
+        "Room is humid",
+        "Outdoor air can dry the room; open a window.\n\nInside: 21 °C\nOutside: 80% RH",
+    )
+
+
+def test_render_german_open_and_goal_exactly() -> None:
+    opened = _ev(
+        Recommendation.OPEN,
+        [
+            ReasonInfo(Reason.DRYING_POSSIBLE, "active"),
+            ReasonInfo(Reason.OVERDUE_AIRING, "active"),
+        ],
+    )
+    opened.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    opened.preview_duration_s = 720
+    assert _render(opened, language="de", room="Bad") == (
+        "Bad ist feucht",
+        "Außenluft kann den Raum trocknen; Fenster öffnen. Frischluft ist ebenfalls fällig.\n"
+        "Vollständiger Luftaustausch: etwa 12 Min.\n\nInnen: 21 °C · 70% rF\n"
+        "Außen: 8 °C · 80% rF (36% rF @ 21 °C)",
+    )
+    goal = _ev(
+        Recommendation.CLOSE,
+        [
+            ReasonInfo(
+                Reason.DRYING_POSSIBLE, "resolved", "drying_possible_target_reached"
             )
         ],
     )
-    title, body = messages.render(ev, room="Room", language="en", to_local=_local)
-    assert title == "Room: you can close the window"
-    assert "?" not in body
+    goal.values = opened.values
+    assert _render(goal, language="de", room="Bad") == (
+        "Bad: Ziel erreicht (Trocknung)",
+        "Luftfeuchte ist wieder im Komfortbereich; Fenster kann geschlossen werden.\n\n"
+        "Innen: 21 °C · 70% rF\nAußen: 8 °C · 80% rF (36% rF @ 21 °C)",
+    )
+
+
+def test_unsupported_language_falls_back_to_english_exactly() -> None:
+    ev = _ev(Recommendation.OPEN, [ReasonInfo(Reason.DRYING_POSSIBLE, "active")])
+    ev.values = {
+        "indoor_temperature": 21,
+        "indoor_humidity": 70,
+        "outdoor_temperature": 8,
+        "outdoor_humidity": 80,
+    }
+    expected = (
+        "Room is humid",
+        "Outdoor air can dry the room; open a window.\n\nInside: 21 °C · 70% RH\n"
+        "Outside: 8 °C · 80% RH (36% RH @ 21 °C)",
+    )
+    assert _render(ev) == expected
+    assert _render(ev, language="unsupported") == expected
+
+
+def test_render_german_problem_notification_exactly() -> None:
+    problem = messages.Problem(
+        "indoor_temperature", "sensor.office_temperature", "unavailable", T0
+    )
+    assert messages.render_problems(
+        [problem], room="Büro", language="de", to_local=_local, now=T0
+    ) == (
+        "Büro: Problem mit Ventilation Advisor",
+        "Innentemperatur (sensor.office_temperature): unavailable seit 12:00.\n"
+        "Betroffene Szenarien behalten ihren letzten Zustand. Bei nicht verfügbaren Eingaben startet keine neue Empfehlung.",
+    )
