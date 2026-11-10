@@ -155,6 +155,8 @@ Selectors filter by corresponding entity/device classes.
 
 ### Per-scenario notifications
 
+Reminder intervals in minutes have no upper limit, globally or per room. Set a scenario's reminder interval to **0** to disable its reminders.
+
 Every scenario has `<scenario>_notification_enabled`. Opening-suggestion reminder intervals use `<scenario>_reminder_interval` in minutes. All four close safeguards (Heat loss, Heat gain, Moisture loss and Moisture gain) use `<scenario>_reminder_factor` times the opening's fixed maximum airing time. Their interval is at least `minimum_safeguard_reminder_interval` (default **3 minutes**, configured under Advanced). For example, a 15-minute maximum airing time gives reminders every 11.25 minutes at the default factor of 0.75. The overdue-airing scenario also has `airing_interval`, which determines how long since a qualifying airing before the first suggestion is due. Its separate `overdue_airing_reminder_interval` controls how often to repeat the suggestion while airing remains overdue. Opening scenarios additionally have `<scenario>_goal_reached_notification_enabled` and `<scenario>_goal_reached_reminder_interval`. Goal-reached advice requires that scenario's main notification switch. These settings are global with room overrides.
 
 Every suggestion type also has `<scenario>_notify_during_quiet_hours`. Opening scenarios have a separate `<scenario>_goal_reached_notify_during_quiet_hours` for completion advice. These switches apply to initial notifications and reminders. All default to **off**, except **Heat loss suggestions**, which default to **on**.

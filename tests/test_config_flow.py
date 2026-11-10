@@ -503,6 +503,30 @@ def test_airing_interval_selector_has_no_maximum(hass: HomeAssistant) -> None:
         assert selector(10_000) == 10_000
 
 
+@pytest.mark.parametrize(
+    "setting",
+    [s for s in settings.SETTINGS if s.key.endswith("_reminder_interval")],
+    ids=lambda s: s.key,
+)
+def test_reminder_interval_selectors_have_no_maximum(
+    hass: HomeAssistant, setting
+) -> None:
+    for form in (
+        global_schema(hass, {}),
+        _overrides_schema(hass, {}, settings.defaults()),
+    ):
+        section = next(
+            value for key, value in form.schema.items() if str(key) == setting.section
+        )
+        selector = next(
+            value
+            for key, value in section.schema.schema.items()
+            if str(key) == setting.key
+        )
+        assert selector.config.get("max") is None
+        assert selector(4320) == 4320
+
+
 @pytest.mark.parametrize("key", ["window_open_debounce", "window_close_debounce"])
 def test_window_delay_selector_allows_single_seconds(
     hass: HomeAssistant, key: str

@@ -142,6 +142,23 @@ def test_safeguard_reminder_settings_support_room_overrides() -> None:
 
 
 @pytest.mark.parametrize(
+    "setting",
+    [s for s in st.SETTINGS if s.key.endswith("_reminder_interval")],
+    ids=lambda s: s.key,
+)
+def test_reminder_intervals_have_no_upper_limit(setting) -> None:
+    assert setting.maximum is None
+    for value in (4320, 100_000):
+        assert st.validate_value(setting, value) is None
+        effective, sources = st.merge({}, {setting.key: value})
+        assert effective[setting.key] == value
+        assert sources[setting.key] == "room"
+        assert st.validate_effective(effective) == {}
+    for value in (-1, float("inf"), float("nan")):
+        assert st.validate_value(setting, value) is not None
+
+
+@pytest.mark.parametrize(
     "name,default,unit",
     [
         ("cooling", 1, "°C"),
