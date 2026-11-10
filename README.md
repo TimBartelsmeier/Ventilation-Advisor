@@ -41,7 +41,9 @@ For each room, optionally select a Home Assistant area first. Leave the name ove
 
 A room counts as open when at least one of its window contacts has remained open through the configured debounce period. The opening ends after all contacts have been confirmed closed.
 
-Each room has a comfort range, **19–23 °C** and **40–55 % relative humidity** by default. Readings can be below, within or above that range. To avoid notifications switching rapidly at a boundary, a reading must move past a small hysteresis margin to change state: for example, temperature becomes too high above 23.5 °C and returns to range at 22.5 °C. At the lower temperature bound, it becomes too low below 18.5 °C and returns at 19.5 °C. Humidity uses the same pattern with a default 3-percentage-point margin (temperature uses 0.5 °C); margins shrink for narrow comfort ranges.
+Each room has a comfort range, **19–23 °C** and **40–55 % relative humidity** by default. Opening suggestions use separate, non-negative margins for cooling, warming, drying and humidifying: **1 °C** for temperature and **5 percentage points** for humidity by default. This means suggesting cooling above 24 °C, warming below 18 °C, drying above 60% and humidifying below 35%, provided outdoor air can help. Each margin can be configured globally and overridden per room; zero suggests opening as soon as the relevant comfort boundary is crossed. Humidity comparisons use the common reference temperature described below.
+
+Suggestion margins do not change the comfort targets or close safeguards. Existing hysteresis still controls goal completion: for example, cooling reaches its target at 22.5 °C and warming at 19.5 °C with default comfort bounds. Humidity uses a 3-percentage-point hysteresis margin (temperature uses 0.5 °C); these hysteresis margins shrink for narrow comfort ranges. Merely returning past the opening threshold does not complete an active goal.
 
 Outdoor air must make a meaningful difference to trigger comfort advice: at least **2 °C** or **5 humidity percentage points** by default. Once advice is active, that useful effect ends only after the difference falls below half its threshold.
 

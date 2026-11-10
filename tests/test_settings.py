@@ -141,6 +141,32 @@ def test_safeguard_reminder_settings_support_room_overrides() -> None:
     assert st.validate_effective(effective) == {}
 
 
+@pytest.mark.parametrize(
+    "name,default,unit",
+    [
+        ("cooling", 1, "°C"),
+        ("warming", 1, "°C"),
+        ("drying", 5, "percentage points"),
+        ("humidifying", 5, "percentage points"),
+    ],
+)
+def test_suggestion_margin_settings(name, default, unit) -> None:
+    key = f"{name}_suggestion_margin"
+    setting = st.SETTINGS_BY_KEY[key]
+    assert setting.default == default
+    assert setting.section == f"{name}_possible"
+    assert setting.unit == unit
+    assert setting.scope is Scope.SHARED
+    assert st.validate_value(setting, -0.1) is not None
+    assert st.validate_value(setting, 0) is None
+    assert st.validate_value(setting, float("inf")) is not None
+    effective, sources = st.merge({key: default + 1}, {key: 0.2})
+    assert effective[key] == 0.2
+    assert sources[key] == "room"
+    assert st.validate_effective(effective) == {}
+    assert "overdue_airing_suggestion_margin" not in st.SETTINGS_BY_KEY
+
+
 def test_no_legacy_settings_or_aliases() -> None:
     retired = {
         "drying_possible_start_relative_humidity",

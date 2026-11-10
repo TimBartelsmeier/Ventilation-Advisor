@@ -198,6 +198,28 @@ def _scenario_settings(prefix: str) -> tuple[Setting, ...]:
             ),
         ),
     ]
+    if prefix in SCENARIOS and prefix != "overdue_airing":
+        name = prefix.removesuffix("_possible")
+        temperature = name in ("cooling", "warming")
+        upper = name in ("cooling", "drying")
+        fields.insert(
+            1,
+            _number(
+                f"{name}_suggestion_margin",
+                1.0 if temperature else 5.0,
+                prefix,
+                f"{name.capitalize()} suggestion margin",
+                0,
+                None,
+                0.1,
+                "°C" if temperature else "percentage points",
+                "Suggest opening only when the indoor reading is "
+                + ("above the upper" if upper else "below the lower")
+                + " effective comfort bound by more than this margin. "
+                "0 triggers beyond the comfort bound. Does not change the comfort "
+                "target, goal completion or close safeguards.",
+            ),
+        )
     if prefix in SCENARIOS:
         fields.extend(
             (

@@ -216,6 +216,104 @@ def test_meaningful_helpful_difference_hysteresis() -> None:
 
 
 @pytest.mark.parametrize(
+    "name,quantity,bound,direction,default",
+    [
+        ("cooling", "it", 23, 1, 1),
+        ("warming", "it", 19, -1, 1),
+        ("drying", "ih", 55, 1, 5),
+        ("humidifying", "ih", 40, -1, 5),
+    ],
+)
+@pytest.mark.parametrize("margin", [None, 0, 0.1, 2, 8])
+def test_opening_uses_exact_suggestion_margin(
+    name, quantity, bound, direction, default, margin
+) -> None:
+    overrides = {} if margin is None else {f"{name}_suggestion_margin": margin}
+    room = Room(condition_delay=0, **overrides)
+    reason = Reason(f"{name}_possible")
+    if quantity == "it":
+        room.ot = -10 if direction == 1 else 40
+    else:
+        room.it = room.ot = 21
+        room.oh = 10 if direction == 1 else 90
+    threshold = bound + direction * (default if margin is None else margin)
+    setattr(room, quantity, threshold)
+    assert reason not in room.eval(T0).reason_ids
+    setattr(room, quantity, threshold + direction * 0.01)
+    assert reason in room.eval(minute(1)).reason_ids
+
+
+@pytest.mark.parametrize(
+    "name,quantity,start,retreat,target,outdoor",
+    [
+        ("cooling", "it", 26, 23.8, 22.5, 5),
+        ("warming", "it", 16, 18.2, 19.5, 30),
+        ("drying", "ih", 70, 57, 52, 10),
+        ("humidifying", "ih", 30, 38, 43, 90),
+    ],
+)
+def test_suggestion_margin_does_not_change_goal_target(
+    name, quantity, start, retreat, target, outdoor
+) -> None:
+    room = Room(condition_delay=0, goal_reached_delay=0)
+    if quantity == "it":
+        room.ot = outdoor
+    else:
+        room.it = room.ot = 21
+        room.oh = outdoor
+    reason = Reason(f"{name}_possible")
+    setattr(room, quantity, start)
+    assert reason in room.eval(T0).reason_ids
+    setattr(room, quantity, retreat)
+    assert room.eval(minute(1)).scenarios[reason] is ScenarioStatus.ACTIVE
+    setattr(room, quantity, target)
+    assert room.eval(minute(2)).scenarios[reason] is ScenarioStatus.RESOLVED
+
+
+def test_suggestion_margin_condition_must_persist() -> None:
+    room = Room(cooling_suggestion_margin=2)
+    room.it, room.ot = 25.1, 10
+    assert room.eval(T0).scenarios[Reason.COOLING_POSSIBLE] is ScenarioStatus.SETTLING
+    room.it = 24
+    assert (
+        room.eval(minute(4)).scenarios[Reason.COOLING_POSSIBLE]
+        is ScenarioStatus.INACTIVE
+    )
+    room.it = 25.1
+    assert (
+        room.eval(minute(5)).scenarios[Reason.COOLING_POSSIBLE]
+        is ScenarioStatus.SETTLING
+    )
+    assert (
+        room.eval(minute(9)).scenarios[Reason.COOLING_POSSIBLE]
+        is ScenarioStatus.SETTLING
+    )
+    assert (
+        room.eval(minute(10)).scenarios[Reason.COOLING_POSSIBLE]
+        is ScenarioStatus.ACTIVE
+    )
+
+
+@pytest.mark.parametrize(
+    "reason,indoor,outdoor",
+    [
+        (Reason.WARMING_POSSIBLE, 22.9, 30),
+        (Reason.COOLING_POSSIBLE, 26.1, 10),
+    ],
+)
+def test_suggestion_margin_uses_heating_adjusted_bounds(
+    reason, indoor, outdoor
+) -> None:
+    room = Room(condition_delay=0)
+    room.thermostat = ThermostatReading("climate.room", True, 24)
+    room.it, room.ot = indoor, outdoor
+    result = room.eval(T0)
+    assert result.values["comfort_lower_temperature"] == 24
+    assert result.values["comfort_upper_temperature"] == 25
+    assert reason in result.reason_ids
+
+
+@pytest.mark.parametrize(
     "setpoint,heating,lower,upper,reference",
     [
         (21, True, 21, 23, 21),

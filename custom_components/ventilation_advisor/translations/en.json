@@ -49,6 +49,7 @@
             "name": "Warming possible",
             "data": {
               "warming_possible_notification_enabled": "Send notifications",
+              "warming_suggestion_margin": "Warming suggestion margin",
               "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "warming_possible_reminder_interval": "Reminder interval",
               "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -57,6 +58,7 @@
             },
             "data_description": {
               "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "warming_possible_reminder_interval": "0 disables reminders for this reason.",
               "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -69,6 +71,7 @@
             "name": "Cooling possible",
             "data": {
               "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_suggestion_margin": "Cooling suggestion margin",
               "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "cooling_possible_reminder_interval": "Reminder interval",
               "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -77,6 +80,7 @@
             },
             "data_description": {
               "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
               "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -89,6 +93,7 @@
             "name": "Drying possible",
             "data": {
               "drying_possible_notification_enabled": "Send notifications",
+              "drying_suggestion_margin": "Drying suggestion margin",
               "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "drying_possible_reminder_interval": "Reminder interval",
               "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -97,6 +102,7 @@
             },
             "data_description": {
               "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "drying_possible_reminder_interval": "0 disables reminders for this reason.",
               "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -109,6 +115,7 @@
             "name": "Humidifying possible",
             "data": {
               "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_suggestion_margin": "Humidifying suggestion margin",
               "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "humidifying_possible_reminder_interval": "Reminder interval",
               "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -117,6 +124,7 @@
             },
             "data_description": {
               "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
               "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -362,6 +370,8 @@
             "name": "Warming possible",
             "data": {
               "warming_possible_notification_enabled": "Send notifications",
+              "warming_suggestion_margin_mode": "Warming suggestion margin",
+              "warming_suggestion_margin": "Warming suggestion margin (room value)",
               "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "warming_possible_reminder_interval_mode": "Reminder interval",
               "warming_possible_reminder_interval": "Reminder interval (room value)",
@@ -372,6 +382,8 @@
             },
             "data_description": {
               "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_suggestion_margin_mode": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+              "warming_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
               "warming_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -386,6 +398,8 @@
             "name": "Cooling possible",
             "data": {
               "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_suggestion_margin_mode": "Cooling suggestion margin",
+              "cooling_suggestion_margin": "Cooling suggestion margin (room value)",
               "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "cooling_possible_reminder_interval_mode": "Reminder interval",
               "cooling_possible_reminder_interval": "Reminder interval (room value)",
@@ -396,6 +410,8 @@
             },
             "data_description": {
               "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_suggestion_margin_mode": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+              "cooling_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
               "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -410,6 +426,8 @@
             "name": "Drying possible",
             "data": {
               "drying_possible_notification_enabled": "Send notifications",
+              "drying_suggestion_margin_mode": "Drying suggestion margin",
+              "drying_suggestion_margin": "Drying suggestion margin (room value)",
               "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "drying_possible_reminder_interval_mode": "Reminder interval",
               "drying_possible_reminder_interval": "Reminder interval (room value)",
@@ -420,6 +438,8 @@
             },
             "data_description": {
               "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_suggestion_margin_mode": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+              "drying_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
               "drying_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -434,6 +454,8 @@
             "name": "Humidifying possible",
             "data": {
               "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_suggestion_margin_mode": "Humidifying suggestion margin",
+              "humidifying_suggestion_margin": "Humidifying suggestion margin (room value)",
               "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "humidifying_possible_reminder_interval_mode": "Reminder interval",
               "humidifying_possible_reminder_interval": "Reminder interval (room value)",
@@ -444,6 +466,8 @@
             },
             "data_description": {
               "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_suggestion_margin_mode": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+              "humidifying_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
               "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -678,6 +702,7 @@
             "name": "Warming possible",
             "data": {
               "warming_possible_notification_enabled": "Send notifications",
+              "warming_suggestion_margin": "Warming suggestion margin",
               "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "warming_possible_reminder_interval": "Reminder interval",
               "warming_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -686,6 +711,7 @@
             },
             "data_description": {
               "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "warming_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "warming_possible_reminder_interval": "0 disables reminders for this reason.",
               "warming_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -698,6 +724,7 @@
             "name": "Cooling possible",
             "data": {
               "cooling_possible_notification_enabled": "Send notifications",
+              "cooling_suggestion_margin": "Cooling suggestion margin",
               "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "cooling_possible_reminder_interval": "Reminder interval",
               "cooling_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -706,6 +733,7 @@
             },
             "data_description": {
               "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "cooling_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
               "cooling_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -718,6 +746,7 @@
             "name": "Drying possible",
             "data": {
               "drying_possible_notification_enabled": "Send notifications",
+              "drying_suggestion_margin": "Drying suggestion margin",
               "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "drying_possible_reminder_interval": "Reminder interval",
               "drying_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -726,6 +755,7 @@
             },
             "data_description": {
               "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "drying_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "drying_possible_reminder_interval": "0 disables reminders for this reason.",
               "drying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -738,6 +768,7 @@
             "name": "Humidifying possible",
             "data": {
               "humidifying_possible_notification_enabled": "Send notifications",
+              "humidifying_suggestion_margin": "Humidifying suggestion margin",
               "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
               "humidifying_possible_reminder_interval": "Reminder interval",
               "humidifying_possible_goal_reached_notification_enabled": "Goal-reached notification",
@@ -746,6 +777,7 @@
             },
             "data_description": {
               "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+              "humidifying_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
               "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
               "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",
               "humidifying_possible_goal_reached_notification_enabled": "Requires this scenario's notifications. When all enabled opening goals are reached, you may close the window; airing longer is fine. Goals are independent of later adverse effects.",
@@ -1003,6 +1035,8 @@
               "name": "Warming possible",
               "data": {
                 "warming_possible_notification_enabled": "Send notifications",
+                "warming_suggestion_margin_mode": "Warming suggestion margin",
+                "warming_suggestion_margin": "Warming suggestion margin (room value)",
                 "warming_possible_notify_during_quiet_hours": "Notify during quiet hours",
                 "warming_possible_reminder_interval_mode": "Reminder interval",
                 "warming_possible_reminder_interval": "Reminder interval (room value)",
@@ -1013,6 +1047,8 @@
               },
               "data_description": {
                 "warming_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "warming_suggestion_margin_mode": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+                "warming_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
                 "warming_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "warming_possible_reminder_interval_mode": "0 disables reminders for this reason.",
                 "warming_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -1027,6 +1063,8 @@
               "name": "Cooling possible",
               "data": {
                 "cooling_possible_notification_enabled": "Send notifications",
+                "cooling_suggestion_margin_mode": "Cooling suggestion margin",
+                "cooling_suggestion_margin": "Cooling suggestion margin (room value)",
                 "cooling_possible_notify_during_quiet_hours": "Notify during quiet hours",
                 "cooling_possible_reminder_interval_mode": "Reminder interval",
                 "cooling_possible_reminder_interval": "Reminder interval (room value)",
@@ -1037,6 +1075,8 @@
               },
               "data_description": {
                 "cooling_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "cooling_suggestion_margin_mode": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+                "cooling_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
                 "cooling_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "cooling_possible_reminder_interval_mode": "0 disables reminders for this reason.",
                 "cooling_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -1051,6 +1091,8 @@
               "name": "Drying possible",
               "data": {
                 "drying_possible_notification_enabled": "Send notifications",
+                "drying_suggestion_margin_mode": "Drying suggestion margin",
+                "drying_suggestion_margin": "Drying suggestion margin (room value)",
                 "drying_possible_notify_during_quiet_hours": "Notify during quiet hours",
                 "drying_possible_reminder_interval_mode": "Reminder interval",
                 "drying_possible_reminder_interval": "Reminder interval (room value)",
@@ -1061,6 +1103,8 @@
               },
               "data_description": {
                 "drying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "drying_suggestion_margin_mode": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+                "drying_suggestion_margin": "Suggest opening only when the indoor reading is above the upper effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
                 "drying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "drying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
                 "drying_possible_reminder_interval": "0 disables reminders for this reason.",
@@ -1075,6 +1119,8 @@
               "name": "Humidifying possible",
               "data": {
                 "humidifying_possible_notification_enabled": "Send notifications",
+                "humidifying_suggestion_margin_mode": "Humidifying suggestion margin",
+                "humidifying_suggestion_margin": "Humidifying suggestion margin (room value)",
                 "humidifying_possible_notify_during_quiet_hours": "Notify during quiet hours",
                 "humidifying_possible_reminder_interval_mode": "Reminder interval",
                 "humidifying_possible_reminder_interval": "Reminder interval (room value)",
@@ -1085,6 +1131,8 @@
               },
               "data_description": {
                 "humidifying_possible_notification_enabled": "Enable this scenario's open suggestions.",
+                "humidifying_suggestion_margin_mode": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
+                "humidifying_suggestion_margin": "Suggest opening only when the indoor reading is below the lower effective comfort bound by more than this margin. 0 triggers beyond the comfort bound. Does not change the comfort target, goal completion or close safeguards.",
                 "humidifying_possible_notify_during_quiet_hours": "Allow this scenario's suggestions and reminders during quiet hours.",
                 "humidifying_possible_reminder_interval_mode": "0 disables reminders for this reason.",
                 "humidifying_possible_reminder_interval": "0 disables reminders for this reason.",

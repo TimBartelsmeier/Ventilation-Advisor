@@ -739,8 +739,13 @@ def _open_scenario(
     starts, resolution = False, None
     if data is not None:
         indoor, outdoor, lower, upper, margin, minimum = data
-        zone = getattr(ctx.state, f"{quantity}_zone")
-        starts = zone == ("above" if direction < 0 else "below") and meaningful_pull(
+        suggestion_margin = ctx.s[
+            f"{reason.removesuffix('_possible')}_suggestion_margin"
+        ]
+        threshold = (
+            upper + suggestion_margin if direction < 0 else lower - suggestion_margin
+        )
+        starts = direction * (threshold - indoor) > 0 and meaningful_pull(
             indoor, outdoor, direction, minimum, False
         )
         reached = (
@@ -754,12 +759,14 @@ def _open_scenario(
             latch.sample = _sample(ctx)
     _LOGGER.debug(
         "Opening scenario=%s: quantity=%s values=%s zone=%s "
-        "window=%s starts=%s resolution=%s condition_delay_min=%s goal_delay_min=%s",
+        "window=%s suggestion_threshold=%s starts=%s resolution=%s "
+        "condition_delay_min=%s goal_delay_min=%s",
         reason,
         quantity,
         data,
         getattr(ctx.state, f"{quantity}_zone"),
         window,
+        threshold if data is not None else None,
         starts,
         resolution,
         ctx.s["condition_delay"],
